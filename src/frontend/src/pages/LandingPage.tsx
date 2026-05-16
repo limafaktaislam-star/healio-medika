@@ -11,16 +11,29 @@ import {
 } from "@/types";
 import { useNavigate } from "@tanstack/react-router";
 import {
+  ArrowLeft,
   ArrowRight,
   Award,
   CheckCircle2,
   Heart,
   MapPin,
   Phone,
+  Shield,
   ShieldCheck,
   Star,
+  Stethoscope,
+  User,
 } from "lucide-react";
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+// --- Data ---
+
+const SLIDES = [
+  { src: "/assets/slide1.png", alt: "Perawat homecare profesional" },
+  { src: "/assets/slide2.png", alt: "Layanan kesehatan di rumah" },
+  { src: "/assets/slide3.png", alt: "Tim medis Healio Medika" },
+  { src: "/assets/slide4.png", alt: "Ambulans dan tenaga medis siap" },
+];
 
 const SERVICES: Array<{ category: FrontendCategory }> = [
   { category: "dokter" },
@@ -75,6 +88,317 @@ const TESTIMONIALS = [
   },
 ];
 
+const LOGIN_PORTALS = [
+  {
+    icon: <User size={32} />,
+    title: "Portal Pasien",
+    label: "PASIEN",
+    colorAccent: "#c9a227",
+    colorBg: "rgba(201,162,39,0.08)",
+    colorBorder: "rgba(201,162,39,0.25)",
+    steps: [
+      "1. Klik tombol Daftar atau Masuk di atas",
+      "2. Login dengan Internet Identity",
+      "3. Pilih peran sebagai Pasien",
+    ],
+    note: null,
+    buttonLabel: "Masuk sebagai Pasien",
+    buttonStyle: {
+      background: "linear-gradient(135deg, #c9a227 0%, #d4af37 100%)",
+      color: "#1a3a2a",
+      border: "none",
+    },
+    ocid: "landing.portal_pasien_button",
+  },
+  {
+    icon: <Stethoscope size={32} />,
+    title: "Portal Tenaga Medis",
+    label: "TENAGA MEDIS",
+    colorAccent: "#2d6a4f",
+    colorBg: "rgba(45,106,79,0.07)",
+    colorBorder: "rgba(45,106,79,0.25)",
+    steps: [
+      "1. Klik tombol Daftar Tenaga Medis di atas",
+      "2. Login dengan Internet Identity",
+      "3. Pilih peran sebagai Tenaga Medis",
+      "4. Lengkapi profil dan dokumen STR/KTP",
+    ],
+    note: null,
+    buttonLabel: "Masuk sebagai Tenaga Medis",
+    buttonStyle: {
+      background: "transparent",
+      color: "#1a3a2a",
+      border: "2px solid #2d6a4f",
+    },
+    ocid: "landing.portal_medis_button",
+  },
+  {
+    icon: <Shield size={32} />,
+    title: "Portal Admin",
+    label: "ADMIN",
+    colorAccent: "#5a6a7a",
+    colorBg: "rgba(90,106,122,0.06)",
+    colorBorder: "rgba(90,106,122,0.2)",
+    steps: [
+      "1. Gunakan akun Internet Identity yang terdaftar sebagai Admin",
+      "2. Login di halaman yang sama",
+      "3. Sistem otomatis mengarahkan ke Dashboard Admin",
+    ],
+    note: "Akses Admin hanya untuk pengelola sistem HEALIO MEDIKA",
+    buttonLabel: "Masuk sebagai Admin",
+    buttonStyle: {
+      background: "rgba(90,106,122,0.1)",
+      color: "#3a4a5a",
+      border: "1.5px solid rgba(90,106,122,0.3)",
+    },
+    ocid: "landing.portal_admin_button",
+  },
+];
+
+// --- HeroSlideshow ---
+
+function HeroSlideshow() {
+  const [current, setCurrent] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const goTo = useCallback(
+    (idx: number) => {
+      if (isTransitioning) return;
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setCurrent(idx);
+        setIsTransitioning(false);
+      }, 350);
+    },
+    [isTransitioning],
+  );
+
+  const next = useCallback(() => {
+    goTo((current + 1) % SLIDES.length);
+  }, [current, goTo]);
+
+  const prev = useCallback(() => {
+    goTo((current - 1 + SLIDES.length) % SLIDES.length);
+  }, [current, goTo]);
+
+  // Auto-advance
+  useEffect(() => {
+    timerRef.current = setInterval(() => {
+      setCurrent((c) => (c + 1) % SLIDES.length);
+    }, 5000);
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
+
+  // Reset timer on manual navigation
+  const manualNav = useCallback((fn: () => void) => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    fn();
+    timerRef.current = setInterval(() => {
+      setCurrent((c) => (c + 1) % SLIDES.length);
+    }, 5000);
+  }, []);
+
+  return (
+    <div className="absolute inset-0 overflow-hidden">
+      {/* Slides */}
+      {SLIDES.map((slide, idx) => (
+        <div
+          key={slide.src}
+          className="absolute inset-0 transition-opacity duration-700"
+          style={{ opacity: idx === current && !isTransitioning ? 1 : 0 }}
+        >
+          <img
+            src={slide.src}
+            alt={slide.alt}
+            className="w-full h-full object-cover"
+          />
+          {/* Dark overlay for text readability */}
+          <div
+            className="absolute inset-0"
+            style={{ background: "rgba(0,0,0,0.50)" }}
+          />
+        </div>
+      ))}
+
+      {/* Left arrow */}
+      <button
+        type="button"
+        aria-label="Slide sebelumnya"
+        onClick={() => manualNav(prev)}
+        data-ocid="landing.slideshow_prev"
+        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-11 h-11 rounded-full transition-all duration-200 hover:scale-110"
+        style={{
+          background: "rgba(255,255,255,0.18)",
+          backdropFilter: "blur(8px)",
+          WebkitBackdropFilter: "blur(8px)",
+          border: "1.5px solid rgba(255,255,255,0.35)",
+          color: "#ffffff",
+        }}
+      >
+        <ArrowLeft size={20} />
+      </button>
+
+      {/* Right arrow */}
+      <button
+        type="button"
+        aria-label="Slide berikutnya"
+        onClick={() => manualNav(next)}
+        data-ocid="landing.slideshow_next"
+        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-11 h-11 rounded-full transition-all duration-200 hover:scale-110"
+        style={{
+          background: "rgba(255,255,255,0.18)",
+          backdropFilter: "blur(8px)",
+          WebkitBackdropFilter: "blur(8px)",
+          border: "1.5px solid rgba(255,255,255,0.35)",
+          color: "#ffffff",
+        }}
+      >
+        <ArrowRight size={20} />
+      </button>
+
+      {/* Dot indicators */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+        {SLIDES.map((slide, idx) => (
+          <button
+            key={slide.alt}
+            type="button"
+            aria-label={`Pergi ke slide ${idx + 1}`}
+            onClick={() => manualNav(() => goTo(idx))}
+            data-ocid={`landing.slideshow_dot.${idx + 1}`}
+            className="rounded-full transition-all duration-300"
+            style={{
+              width: idx === current ? "28px" : "10px",
+              height: "10px",
+              background: idx === current ? "#c9a227" : "rgba(255,255,255,0.5)",
+              border:
+                idx === current ? "none" : "1.5px solid rgba(255,255,255,0.6)",
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// --- LoginInfoSection ---
+
+function LoginInfoSection() {
+  const navigate = useNavigate();
+  return (
+    <section
+      className="py-16 md:py-24"
+      style={{ background: "#f0faf5" }}
+      data-ocid="landing.login_info_section"
+    >
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="text-center mb-12">
+          <h2
+            className="font-display font-extrabold text-3xl md:text-4xl mb-3"
+            style={{ color: "#1a3a2a" }}
+          >
+            Cara Masuk ke Akun Anda
+          </h2>
+          <p className="text-lg" style={{ color: "#5a7a68" }}>
+            Akses portal sesuai peran Anda
+          </p>
+          <div
+            className="w-20 h-1 mx-auto mt-4 rounded-full"
+            style={{ background: "linear-gradient(90deg, #2d6a4f, #c9a227)" }}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {LOGIN_PORTALS.map((portal) => (
+            <div
+              key={portal.label}
+              className="rounded-2xl p-7 flex flex-col"
+              style={{
+                background: "rgba(255,255,255,0.72)",
+                backdropFilter: "blur(18px)",
+                WebkitBackdropFilter: "blur(18px)",
+                border: `1.5px solid ${portal.colorBorder}`,
+                boxShadow: "0 8px 32px rgba(45,106,79,0.10)",
+              }}
+              data-ocid={`landing.portal_card.${portal.label.toLowerCase().replace(" ", "_")}`}
+            >
+              {/* Icon + label */}
+              <div className="flex items-center gap-3 mb-5">
+                <div
+                  className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{
+                    background: portal.colorBg,
+                    border: `1.5px solid ${portal.colorBorder}`,
+                    color: portal.colorAccent,
+                  }}
+                >
+                  {portal.icon}
+                </div>
+                <div>
+                  <span
+                    className="text-xs font-bold tracking-widest uppercase"
+                    style={{ color: portal.colorAccent }}
+                  >
+                    {portal.label}
+                  </span>
+                  <h3
+                    className="font-display font-extrabold text-lg leading-tight"
+                    style={{ color: "#1a3a2a" }}
+                  >
+                    {portal.title}
+                  </h3>
+                </div>
+              </div>
+
+              {/* Steps */}
+              <ul className="flex flex-col gap-2 mb-5 flex-1">
+                {portal.steps.map((step) => (
+                  <li
+                    key={step}
+                    className="text-sm leading-snug"
+                    style={{ color: "#3a5c48" }}
+                  >
+                    {step}
+                  </li>
+                ))}
+              </ul>
+
+              {/* Note */}
+              {portal.note && (
+                <p
+                  className="text-xs italic mb-4 px-3 py-2 rounded-lg"
+                  style={{
+                    color: "#6a7a8a",
+                    background: "rgba(90,106,122,0.07)",
+                    border: "1px solid rgba(90,106,122,0.12)",
+                  }}
+                >
+                  {portal.note}
+                </p>
+              )}
+
+              {/* Button */}
+              <button
+                type="button"
+                onClick={() => navigate({ to: "/login" })}
+                className="w-full py-3 rounded-xl font-bold text-sm transition-all duration-200 hover:opacity-90 hover:shadow-md"
+                style={portal.buttonStyle}
+                data-ocid={portal.ocid}
+              >
+                {portal.buttonLabel}
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// --- Main Page ---
+
 export default function LandingPage() {
   const { isLoggedIn, role } = useAuth();
   const navigate = useNavigate();
@@ -89,55 +413,26 @@ export default function LandingPage() {
 
   return (
     <Layout showSidebar={false}>
-      {/* Hero Section */}
+      {/* ── Hero Section with Slideshow ── */}
       <section
-        className="relative overflow-hidden min-h-[90vh] flex items-center bg-background"
-        style={{
-          background:
-            "linear-gradient(135deg, #f0faf5 0%, #e8f5ee 35%, #f5fdf8 65%, #ffffff 100%)",
-        }}
+        className="relative overflow-hidden min-h-[90vh] flex items-center"
         data-ocid="landing.hero_section"
       >
-        {/* Background hero image with soft overlay */}
-        <div className="absolute inset-0">
-          <img
-            src="/assets/generated/hero-homecare-green.dim_1200x700.jpg"
-            alt=""
-            className="w-full h-full object-cover opacity-8"
-            style={{ opacity: 0.08 }}
-          />
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                "linear-gradient(135deg, rgba(240,250,245,0.92) 0%, rgba(232,245,238,0.88) 50%, rgba(255,255,255,0.82) 100%)",
-            }}
-          />
-        </div>
+        {/* Slideshow background */}
+        <HeroSlideshow />
 
-        {/* Decorative green orbs */}
-        <div
-          className="absolute top-20 right-20 w-72 h-72 rounded-full opacity-15 blur-3xl"
-          style={{
-            background: "radial-gradient(circle, #2d6a4f 0%, transparent 70%)",
-          }}
-        />
-        <div
-          className="absolute bottom-20 left-10 w-48 h-48 rounded-full opacity-10 blur-3xl"
-          style={{
-            background: "radial-gradient(circle, #c9a227 0%, transparent 70%)",
-          }}
-        />
-
+        {/* Content on top of slideshow */}
         <div className="max-w-7xl mx-auto px-4 py-16 md:py-24 grid md:grid-cols-2 gap-12 items-center relative z-10 w-full">
           {/* Hero Text */}
           <div>
             <div
               className="inline-flex items-center gap-2 text-sm font-bold px-4 py-2 rounded-full mb-6"
               style={{
-                background: "rgba(45,106,79,0.08)",
-                color: "#1a3a2a",
-                border: "1px solid rgba(45,106,79,0.2)",
+                background: "rgba(255,255,255,0.18)",
+                backdropFilter: "blur(10px)",
+                WebkitBackdropFilter: "blur(10px)",
+                color: "#ffffff",
+                border: "1px solid rgba(255,255,255,0.35)",
               }}
             >
               <Star size={14} fill="#c9a227" style={{ color: "#c9a227" }} />
@@ -148,17 +443,21 @@ export default function LandingPage() {
               className="font-display font-black leading-tight mb-6"
               style={{
                 fontSize: "clamp(2.5rem, 5vw, 4rem)",
-                color: "#1a3a2a",
+                color: "#ffffff",
+                textShadow: "0 2px 16px rgba(0,0,0,0.45)",
               }}
             >
               KESEHATAN ANDA,
               <br />
-              <span style={{ color: "#2d6a4f" }}>PRIORITAS KAMI</span>
+              <span style={{ color: "#f5d76a" }}>PRIORITAS KAMI</span>
             </h1>
 
             <p
               className="text-lg md:text-xl mb-8 leading-relaxed"
-              style={{ color: "#3a5c48" }}
+              style={{
+                color: "rgba(255,255,255,0.90)",
+                textShadow: "0 1px 8px rgba(0,0,0,0.3)",
+              }}
             >
               Layanan perawatan profesional langsung ke rumah Anda — Dokter,
               Perawat, Bidan, Fisioterapis, Ambulans, dan Apotek terdekat siap
@@ -180,7 +479,7 @@ export default function LandingPage() {
                     "linear-gradient(135deg, #1a3a2a 0%, #2d6a4f 100%)",
                   color: "#ffffff",
                   border: "none",
-                  boxShadow: "0 4px 16px rgba(45,106,79,0.35)",
+                  boxShadow: "0 4px 16px rgba(45,106,79,0.4)",
                 }}
               >
                 Pilih Layanan Sekarang <ArrowRight size={20} />
@@ -196,28 +495,33 @@ export default function LandingPage() {
                 data-ocid="landing.cta_pelajari_button"
                 className="font-semibold text-base px-8 py-4 rounded-xl"
                 style={{
-                  background: "rgba(255,255,255,0.8)",
-                  color: "#1a3a2a",
-                  border: "1.5px solid rgba(45,106,79,0.35)",
+                  background: "rgba(255,255,255,0.15)",
+                  backdropFilter: "blur(12px)",
+                  WebkitBackdropFilter: "blur(12px)",
+                  color: "#ffffff",
+                  border: "1.5px solid rgba(255,255,255,0.45)",
                 }}
               >
                 Pelajari Lebih Lanjut
               </Button>
             </div>
 
-            <div
-              className="flex items-center gap-6"
-              style={{ color: "#4a7a5e" }}
-            >
+            <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
-                <CheckCircle2 size={18} style={{ color: "#2d6a4f" }} />
-                <span className="text-sm font-medium">
+                <CheckCircle2 size={18} style={{ color: "#86e8b0" }} />
+                <span
+                  className="text-sm font-medium"
+                  style={{ color: "rgba(255,255,255,0.9)" }}
+                >
                   500+ Tenaga Medis Terverifikasi
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle2 size={18} style={{ color: "#c9a227" }} />
-                <span className="text-sm font-medium">
+                <CheckCircle2 size={18} style={{ color: "#f5d76a" }} />
+                <span
+                  className="text-sm font-medium"
+                  style={{ color: "rgba(255,255,255,0.9)" }}
+                >
                   10.000+ Pasien Dilayani
                 </span>
               </div>
@@ -229,48 +533,63 @@ export default function LandingPage() {
             <div
               className="rounded-2xl overflow-hidden"
               style={{
-                background: "rgba(255,255,255,0.75)",
+                background: "rgba(255,255,255,0.15)",
                 backdropFilter: "blur(20px)",
                 WebkitBackdropFilter: "blur(20px)",
-                border: "1.5px solid rgba(45,106,79,0.2)",
-                boxShadow:
-                  "0 20px 60px rgba(45,106,79,0.12), 0 0 0 1px rgba(45,106,79,0.05)",
+                border: "1.5px solid rgba(255,255,255,0.35)",
+                boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
               }}
             >
-              <img
-                src="/assets/generated/hero-homecare-green.dim_1200x700.jpg"
-                alt="Perawat profesional Healio Medika"
-                className="w-full aspect-[4/3] object-cover"
-                style={{ opacity: 0.9 }}
-              />
               <div className="p-5">
                 <div
                   className="flex items-center gap-3 p-4 rounded-xl"
                   style={{
-                    background: "rgba(45,106,79,0.06)",
-                    border: "1px solid rgba(45,106,79,0.15)",
+                    background: "rgba(255,255,255,0.12)",
+                    border: "1px solid rgba(255,255,255,0.25)",
                   }}
                 >
                   <div
                     className="w-10 h-10 rounded-full flex items-center justify-center"
-                    style={{ background: "rgba(45,106,79,0.12)" }}
+                    style={{ background: "rgba(45,106,79,0.35)" }}
                   >
-                    <Phone size={18} style={{ color: "#2d6a4f" }} />
+                    <Phone size={18} style={{ color: "#86e8b0" }} />
                   </div>
                   <div>
                     <div
                       className="text-xs font-medium"
-                      style={{ color: "#6a9a7e" }}
+                      style={{ color: "rgba(255,255,255,0.7)" }}
                     >
                       Butuh bantuan?
                     </div>
                     <div
                       className="font-bold text-sm"
-                      style={{ color: "#1a3a2a" }}
+                      style={{ color: "#ffffff" }}
                     >
                       Hubungi kami 24/7
                     </div>
                   </div>
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  {SERVICES.slice(0, 4).map((svc) => (
+                    <div
+                      key={svc.category}
+                      className="flex items-center gap-2 p-3 rounded-xl"
+                      style={{
+                        background: "rgba(255,255,255,0.10)",
+                        border: "1px solid rgba(255,255,255,0.2)",
+                      }}
+                    >
+                      <span className="text-xl">
+                        {FRONTEND_CATEGORY_ICONS[svc.category]}
+                      </span>
+                      <span
+                        className="text-xs font-semibold"
+                        style={{ color: "rgba(255,255,255,0.9)" }}
+                      >
+                        {FRONTEND_CATEGORY_LABELS[svc.category]}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -278,7 +597,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Services Section */}
+      {/* ── Services Section ── */}
       <section
         id="layanan"
         className="py-16 md:py-24 relative overflow-hidden"
@@ -399,7 +718,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* ── Features Section ── */}
       <section
         className="py-16 md:py-24"
         style={{ background: "#f5fdf8" }}
@@ -452,7 +771,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Testimonials Section */}
+      {/* ── Testimonials Section ── */}
       <section
         className="py-16 md:py-24"
         style={{ background: "#ffffff" }}
@@ -526,7 +845,10 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* ── Login Info Section ── */}
+      <LoginInfoSection />
+
+      {/* ── CTA Section ── */}
       <section
         className="py-16 md:py-24 relative overflow-hidden"
         style={{

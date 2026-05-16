@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
-import { Link, useRouter } from "@tanstack/react-router";
+import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import {
   Activity,
   CalendarDays,
@@ -86,6 +86,7 @@ export function Layout({ children, showSidebar = true }: LayoutProps) {
   const { role, isLoggedIn, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const router = useRouter();
+  const navigate = useNavigate();
 
   const navItems =
     role === "patient"
@@ -134,48 +135,13 @@ export function Layout({ children, showSidebar = true }: LayoutProps) {
               </button>
             )}
             <Link to="/" className="flex items-center gap-3">
-              {/* Inline SVG Logo */}
-              <div
-                className="w-11 h-11 rounded-xl flex items-center justify-center shadow-gold"
-                style={{
-                  background:
-                    "linear-gradient(135deg, rgba(201,162,39,0.15) 0%, rgba(201,162,39,0.05) 100%)",
-                  border: "1.5px solid rgba(201,162,39,0.5)",
-                }}
-              >
-                <svg
-                  viewBox="0 0 48 48"
-                  width="32"
-                  height="32"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  role="img"
-                  aria-label="Healio Medika Logo"
-                >
-                  <path
-                    d="M12 34c0 0 2-8 4-10s4-2 4-2l4-8c1-2 3-2 4-1s1 3 0 5l-2 4h8c2 0 3 1.5 3 3s-1 3-3 3h-2c1 0 2 1 2 2.5s-1 2.5-2 2.5h-1c1 0 1.5 1 1.5 2s-0.5 2-2 2H18c-2 0-4-1-6-3z"
-                    fill="#1a4a2e"
-                    stroke="#2d6a4f"
-                    strokeWidth="0.5"
-                  />
-                  <path
-                    d="M22 20c-1-4 0-8 3-10 3 2 4 6 3 10-1 2-2 3-3 3s-2-1-3-3z"
-                    fill="#c9a227"
-                    opacity="0.95"
-                  />
-                  <path
-                    d="M17 22c-3-3-3-8 0-11 3 1 5 5 4 9-0.5 2-1.5 3-2.5 3s-1-0.5-1.5-1z"
-                    fill="#d4af37"
-                    opacity="0.8"
-                  />
-                  <path
-                    d="M29 22c3-3 3-8 0-11-3 1-5 5-4 9 0.5 2 1.5 3 2.5 3s1-0.5 1.5-1z"
-                    fill="#d4af37"
-                    opacity="0.8"
-                  />
-                  <circle cx="25" cy="20" r="2" fill="#f0c040" opacity="0.9" />
-                </svg>
-              </div>
+              {/* Logo Image */}
+              <img
+                src="/assets/logo-healio-new.png"
+                alt="Healio Medika Logo"
+                style={{ height: "48px", width: "auto" }}
+                className="drop-shadow-md"
+              />
               <div className="leading-tight">
                 <div className="font-display font-bold text-lg tracking-wide text-white">
                   HEALIO MEDIKA
@@ -191,6 +157,47 @@ export function Layout({ children, showSidebar = true }: LayoutProps) {
           </div>
 
           <div className="flex items-center gap-2">
+            {!isLoggedIn && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => navigate({ to: "/login" })}
+                  data-ocid="layout.daftar_pasien_button"
+                  className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-lg transition-smooth"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #c9a227 0%, #d4af37 100%)",
+                    color: "#1a3a2a",
+                    border: "none",
+                  }}
+                >
+                  Daftar Pasien
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate({ to: "/login" })}
+                  data-ocid="layout.daftar_medis_button"
+                  className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-lg transition-smooth"
+                  style={{
+                    background: "rgba(255,255,255,0.12)",
+                    backdropFilter: "blur(8px)",
+                    WebkitBackdropFilter: "blur(8px)",
+                    color: "#ffffff",
+                    border: "1px solid rgba(255,255,255,0.3)",
+                  }}
+                >
+                  Daftar Tenaga Medis
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate({ to: "/login" })}
+                  data-ocid="layout.masuk_button"
+                  className="flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg hover:bg-white/10 transition-smooth text-white/90 hover:text-white"
+                >
+                  Masuk
+                </button>
+              </>
+            )}
             {isLoggedIn && roleLabel && (
               <span
                 className="hidden sm:inline-block text-xs font-bold px-3 py-1 rounded-full"
