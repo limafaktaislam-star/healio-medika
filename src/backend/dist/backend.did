@@ -1,0 +1,149 @@
+type ServiceCategory = 
+ variant {
+   ambulance;
+   elderlycare;
+   physiotherapy;
+   postopcare;
+   woundcare;
+ };
+type Service = 
+ record {
+   baseFeeIdr: nat;
+   category: ServiceCategory;
+   createdAt: int;
+   description: text;
+   id: nat;
+   isActive: bool;
+   name: text;
+   updatedAt: int;
+ };
+type PricingConfig = 
+ record {
+   holidaySurchargePct: nat;
+   nightSurchargePct: nat;
+   perKmRateIdr: nat;
+   updatedAt: int;
+ };
+type PricingAuditEntry = 
+ record {
+   adminPrincipal: principal;
+   changeDescription: text;
+   changedAt: int;
+   id: nat;
+ };
+type PatientProfile = 
+ record {
+   age: nat;
+   allergies: text;
+   bloodType: text;
+   conditions: text;
+   createdAt: int;
+   emergencyContact: text;
+   name: text;
+   "principal": principal;
+   updatedAt: int;
+ };
+type NurseStatus = 
+ variant {
+   pending_verification;
+   rejected;
+   verified;
+ };
+type NurseProfile = 
+ record {
+   createdAt: int;
+   experienceYears: nat;
+   ktpDocUrl: text;
+   latitude: opt float64;
+   locationUpdatedAt: opt int;
+   longitude: opt float64;
+   name: text;
+   "principal": principal;
+   specialization: text;
+   status: NurseStatus;
+   strDocUrl: text;
+   strNumber: text;
+   updatedAt: int;
+ };
+type BookingStatus = 
+ variant {
+   accepted;
+   cancelled;
+   completed;
+   in_progress;
+   pending;
+   rejected;
+ };
+type BookingStats = 
+ record {
+   accepted: nat;
+   cancelled: nat;
+   completed: nat;
+   in_progress: nat;
+   pending: nat;
+   rejected: nat;
+   total: nat;
+ };
+type Booking = 
+ record {
+   createdAt: int;
+   estimatedFeeIdr: nat;
+   id: nat;
+   latitude: float64;
+   longitude: float64;
+   notes: text;
+   nursePrincipal: opt principal;
+   patientPrincipal: principal;
+   scheduledDate: text;
+   scheduledTime: text;
+   serviceId: nat;
+   status: BookingStatus;
+   updatedAt: int;
+   visitReport: opt text;
+ };
+service : {
+  acceptBooking: (bookingId: nat) -> (text);
+  adminCreateService: (name: text, description: text, category:
+   ServiceCategory, baseFeeIdr: nat) -> (text);
+  adminDeleteService: (id: nat) -> (text);
+  adminUpdatePricing: (perKmRateIdr: nat, nightSurchargePct: nat,
+   holidaySurchargePct: nat) -> (text);
+  adminUpdateService: (id: nat, name: text, description: text, baseFeeIdr:
+   nat) -> (text);
+  approveNurse: (nursePrincipal: principal) -> (text);
+  cancelBooking: (bookingId: nat) -> (text);
+  createBooking: (serviceId: nat, scheduledDate: text, scheduledTime: 
+   text, latitude: float64, longitude: float64, notes: text) -> (text);
+  estimateCost: (serviceId: nat, distanceKm: float64, nightTime: bool,
+   holiday: bool) -> (opt nat) query;
+  getAllBookings: () -> (vec Booking) query;
+  getAllNurses: () -> (vec NurseProfile) query;
+  getBookingStats: () -> (opt BookingStats) query;
+  getIncomingBookings: () -> (vec Booking) query;
+  getMyBookings: () -> (vec Booking) query;
+  getMyNurseProfile: () -> (opt NurseProfile) query;
+  getMyPatientProfile: () -> (opt PatientProfile) query;
+  getMyRole: () -> (opt text) query;
+  getNearbyNurses: (lat: float64, lon: float64, radiusKm: float64) ->
+   (vec NurseProfile) query;
+  getNurseProfile: (p: principal) -> (opt NurseProfile) query;
+  getNurseSchedule: () -> (vec Booking) query;
+  getPendingNurses: () -> (vec NurseProfile) query;
+  getPricingAuditLog: () -> (vec PricingAuditEntry) query;
+  getPricingConfig: () -> (PricingConfig) query;
+  listAllServices: () -> (vec Service) query;
+  listServices: () -> (vec Service) query;
+  registerAsAdmin: () -> (text);
+  registerAsNurse: (name: text, strNumber: text, specialization: text,
+   experienceYears: nat, strDocUrl: text, ktpDocUrl: text) -> (text);
+  registerAsPatient: () -> (text);
+  rejectBooking: (bookingId: nat) -> (text);
+  rejectNurse: (nursePrincipal: principal) -> (text);
+  saveNurseProfile: (name: text, strNumber: text, specialization: text,
+   experienceYears: nat, strDocUrl: text, ktpDocUrl: text) -> (text);
+  savePatientProfile: (name: text, age: nat, conditions: text, allergies:
+   text, bloodType: text, emergencyContact: text) -> (text);
+  seedDefaultServices: () -> (text);
+  submitVisitReport: (bookingId: nat, reportText: text) -> (text);
+  updateNurseLocation: (lat: float64, lon: float64) -> (text);
+}

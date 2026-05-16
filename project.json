@@ -1,0 +1,23 @@
+{
+  "overview": "HEALIO MEDIKA adalah platform layanan homecare Indonesia yang menghubungkan pasien dengan perawat, bidan, dan fisioterapis profesional. Pasien bisa memesan layanan, perawat mengelola jadwal kunjungan, dan admin memverifikasi dokumen serta mengatur harga layanan.",
+  "features": [
+    "Portal pasien dengan pemesanan layanan dan riwayat kunjungan",
+    "Dashboard perawat dengan manajemen pesanan dan upload dokumen STR/KTP",
+    "Panel admin dengan verifikasi perawat dan pengaturan harga",
+    "Login Internet Identity dengan kontrol akses berbasis peran",
+    "Katalog layanan: Perawatan Lansia, Luka, Pasca Operasi, Fisioterapi, Ambulans",
+    "Kalender pemesanan dengan pemilihan tanggal dan jam",
+    "Geolokasi pasien dengan tampilan peta",
+    "Pengaturan harga admin: tarif dasar, tarif/km, surcharge malam"
+  ],
+  "category": "healthcare",
+  "tags": [
+    "homecare",
+    "healthcare",
+    "indonesia",
+    "perawatan",
+    "booking",
+    "medical"
+  ],
+  "last_updated": "2026-05-14T22:08:31.174Z"
+}

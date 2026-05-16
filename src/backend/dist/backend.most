@@ -1,0 +1,124 @@
+// Version: 1.0.0
+type BookingStatus__163633778 =
+  {#accepted; #cancelled; #completed; #in_progress; #pending; #rejected};
+type Booking__519012722 =
+  {
+    createdAt : Int;
+    estimatedFeeIdr : Nat;
+    id : Nat;
+    latitude : Float;
+    longitude : Float;
+    notes : Text;
+    nursePrincipal : ?Principal;
+    patientPrincipal : Principal;
+    scheduledDate : Text;
+    scheduledTime : Text;
+    serviceId : Nat;
+    status : BookingStatus__163633778;
+    updatedAt : Int;
+    visitReport : ?Text
+  };
+type Nat__490723111 = Nat__920180692;
+type Nat__920180692 = Nat;
+type NurseProfile__165237314 =
+  {
+    createdAt : Int;
+    experienceYears : Nat;
+    ktpDocUrl : Text;
+    latitude : ?Float;
+    locationUpdatedAt : ?Int;
+    longitude : ?Float;
+    name : Text;
+    principal : Principal;
+    specialization : Text;
+    status : NurseStatus__1018191426;
+    strDocUrl : Text;
+    strNumber : Text;
+    updatedAt : Int
+  };
+type NurseStatus__1018191426 = {#pending_verification; #rejected; #verified};
+type PatientProfile__423225276 =
+  {
+    age : Nat;
+    allergies : Text;
+    bloodType : Text;
+    conditions : Text;
+    createdAt : Int;
+    emergencyContact : Text;
+    name : Text;
+    principal : Principal;
+    updatedAt : Int
+  };
+type PricingAuditEntry__808252856 =
+  {
+    adminPrincipal : Principal;
+    changeDescription : Text;
+    changedAt : Int;
+    id : Nat
+  };
+type PricingConfig__959556763 =
+  {
+    holidaySurchargePct : Nat;
+    nightSurchargePct : Nat;
+    perKmRateIdr : Nat;
+    updatedAt : Int
+  };
+type ServiceCategory__37760325 =
+  {#ambulance; #elderlycare; #physiotherapy; #postopcare; #woundcare};
+type Service__311281967 =
+  {
+    baseFeeIdr : Nat;
+    category : ServiceCategory__37760325;
+    createdAt : Int;
+    description : Text;
+    id : Nat;
+    isActive : Bool;
+    name : Text;
+    updatedAt : Int
+  };
+type UserRole__599675725 = {#admin; #nurse; #patient};
+actor {
+  stable auditLog :
+    {
+      var blockIndex : Nat__490723111;
+      var blocks : [var [var ?PricingAuditEntry__808252856]];
+      var elementIndex : Nat__490723111
+    };
+  stable bookings :
+    {
+      var blockIndex : Nat__490723111;
+      var blocks : [var [var ?Booking__519012722]];
+      var elementIndex : Nat__490723111
+    };
+  stable nurses :
+    {
+      var blockIndex : Nat__490723111;
+      var blocks : [var [var ?NurseProfile__165237314]];
+      var elementIndex : Nat__490723111
+    };
+  stable patients :
+    {
+      var blockIndex : Nat__490723111;
+      var blocks : [var [var ?PatientProfile__423225276]];
+      var elementIndex : Nat__490723111
+    };
+  stable roles :
+    {
+      var blockIndex : Nat__490723111;
+      var blocks : [var [var ?(Principal, UserRole__599675725)]];
+      var elementIndex : Nat__490723111
+    };
+  stable services :
+    {
+      var blockIndex : Nat__490723111;
+      var blocks : [var [var ?Service__311281967]];
+      var elementIndex : Nat__490723111
+    };
+  stable state :
+    {
+      var nextAuditId : Nat;
+      var nextBookingId : Nat;
+      var nextServiceId : Nat;
+      var pricingConfig : PricingConfig__959556763
+    }
+};
