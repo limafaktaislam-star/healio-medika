@@ -1,4 +1,17 @@
-// Version: 1.0.0
+// Version: 3.0.0
+type Article__693132840 =
+  {
+    category : Text;
+    content : Text;
+    createdAt : Int;
+    id : Nat;
+    imagePrompt : Text;
+    metaDescription : Text;
+    references : [Text];
+    slug : Text;
+    title : Text;
+    updatedAt : Int
+  };
 type BookingStatus__163633778 =
   {#accepted; #cancelled; #completed; #in_progress; #pending; #rejected};
 type Booking__519012722 =
@@ -18,36 +31,189 @@ type Booking__519012722 =
     updatedAt : Int;
     visitReport : ?Text
   };
+type List__415060402<T> = List__790383201<T>;
+type List__790383201<T> =
+  {
+    var blockIndex : Nat__490723111;
+    var blocks : [var [var ?T]];
+    var elementIndex : Nat__490723111
+  };
 type Nat__490723111 = Nat__920180692;
 type Nat__920180692 = Nat;
 type NurseProfile__165237314 =
   {
+    additionalCertificates : ?Text;
     createdAt : Int;
+    currentFacilityType : ?Text;
+    currentWorkDuration : ?Nat;
+    currentWorkplace : ?Text;
+    email : ?Text;
+    emergencyCertExpiry : ?Text;
+    emergencyCertification : ?Text;
+    employeeIdCardUrl : ?Text;
     experienceYears : Nat;
+    graduationYear : ?Nat;
+    ijazahDocumentUrl : ?Text;
     ktpDocUrl : Text;
+    ktpPhotoUrl : ?Text;
     latitude : ?Float;
     locationUpdatedAt : ?Int;
     longitude : ?Float;
+    medicalCompetencies : ?Text;
     name : Text;
+    passwordHash : ?Text;
+    previousFacilityType : ?Text;
+    previousWorkHistory : ?Text;
     principal : Principal;
+    profession : ?Text;
+    professionalOrg : ?Text;
+    selfieWithKtpUrl : ?Text;
     specialization : Text;
     status : NurseStatus__1018191426;
     strDocUrl : Text;
+    strDocumentUrl : ?Text;
+    strExpiry : ?Text;
     strNumber : Text;
+    totalExperienceYears : ?Nat;
+    university : ?Text;
     updatedAt : Int
   };
 type NurseStatus__1018191426 = {#pending_verification; #rejected; #verified};
-type PatientProfile__423225276 =
+type OldBookingStatus__846941108 =
+  {#accepted; #cancelled; #completed; #in_progress; #pending; #rejected};
+type OldBooking__221110599 =
   {
+    createdAt : Int;
+    estimatedFeeIdr : Nat;
+    id : Nat;
+    latitude : Float;
+    longitude : Float;
+    notes : Text;
+    nursePrincipal : ?Principal;
+    patientPrincipal : Principal;
+    scheduledDate : Text;
+    scheduledTime : Text;
+    serviceId : Nat;
+    status : OldBookingStatus__846941108;
+    updatedAt : Int;
+    visitReport : ?Text
+  };
+type OldNurseProfile__100531467 =
+  {
+    additionalCertificates : ?Text;
+    createdAt : Int;
+    currentFacilityType : ?Text;
+    currentWorkDuration : ?Nat;
+    currentWorkplace : ?Text;
+    emergencyCertExpiry : ?Text;
+    emergencyCertification : ?Text;
+    employeeIdCardUrl : ?Text;
+    experienceYears : Nat;
+    graduationYear : ?Nat;
+    ijazahDocumentUrl : ?Text;
+    ktpDocUrl : Text;
+    ktpPhotoUrl : ?Text;
+    latitude : ?Float;
+    locationUpdatedAt : ?Int;
+    longitude : ?Float;
+    medicalCompetencies : ?Text;
+    name : Text;
+    previousFacilityType : ?Text;
+    previousWorkHistory : ?Text;
+    principal : Principal;
+    professionalOrg : ?Text;
+    selfieWithKtpUrl : ?Text;
+    specialization : Text;
+    status : OldNurseStatus__609216299;
+    strDocUrl : Text;
+    strDocumentUrl : ?Text;
+    strExpiry : ?Text;
+    strNumber : Text;
+    totalExperienceYears : ?Nat;
+    university : ?Text;
+    updatedAt : Int
+  };
+type OldNurseStatus__609216299 =
+  {#pending_verification; #rejected; #verified};
+type OldPatientProfile__29314829 =
+  {
+    address : ?Text;
     age : Nat;
     allergies : Text;
+    birthDate : ?Text;
     bloodType : Text;
     conditions : Text;
     createdAt : Int;
-    emergencyContact : Text;
+    emergencyContactName : ?Text;
+    emergencyContactPhone : ?Text;
+    emergencyContactRelation : ?Text;
+    gender : ?Text;
+    ktpPhotoUrl : ?Text;
     name : Text;
+    nik : ?Text;
+    phoneNumber : ?Text;
     principal : Principal;
+    selfieWithKtpUrl : ?Text;
     updatedAt : Int
+  };
+type OldPricingAuditEntry__535118492 =
+  {
+    adminPrincipal : Principal;
+    changeDescription : Text;
+    changedAt : Int;
+    id : Nat
+  };
+type OldPricingConfig__698068038 =
+  {
+    holidaySurchargePct : Nat;
+    nightSurchargePct : Nat;
+    perKmRateIdr : Nat;
+    updatedAt : Int
+  };
+type OldPricingState__899356834 =
+  {
+    var nextAuditId : Nat;
+    var nextBookingId : Nat;
+    var nextServiceId : Nat;
+    var pricingConfig : OldPricingConfig__698068038
+  };
+type OldServiceCategory__1058276844 =
+  {#ambulance; #elderlycare; #physiotherapy; #postopcare; #woundcare};
+type OldService__50551026 =
+  {
+    baseFeeIdr : Nat;
+    category : OldServiceCategory__1058276844;
+    createdAt : Int;
+    description : Text;
+    id : Nat;
+    isActive : Bool;
+    name : Text;
+    updatedAt : Int
+  };
+type OldUserRole__889293160 = {#admin; #nurse; #patient};
+type PatientProfile__423225276 =
+  {
+    address : ?Text;
+    age : Nat;
+    allergies : Text;
+    birthDate : ?Text;
+    bloodType : Text;
+    conditions : Text;
+    createdAt : Int;
+    email : ?Text;
+    emergencyContactName : ?Text;
+    emergencyContactPhone : ?Text;
+    emergencyContactRelation : ?Text;
+    gender : ?Text;
+    ktpPhotoUrl : ?Text;
+    name : Text;
+    nik : ?Text;
+    passwordHash : ?Text;
+    phoneNumber : ?Text;
+    principal : Principal;
+    selfieWithKtpUrl : ?Text;
+    updatedAt : Int;
+    verificationStatus : Text
   };
 type PricingAuditEntry__808252856 =
   {
@@ -77,7 +243,21 @@ type Service__311281967 =
     updatedAt : Int
   };
 type UserRole__599675725 = {#admin; #nurse; #patient};
-actor {
+actor ({
+  in auditLog : List__415060402<OldPricingAuditEntry__535118492>;
+  in bookings : List__415060402<OldBooking__221110599>;
+  in nurses : List__415060402<OldNurseProfile__100531467>;
+  in patients : List__415060402<OldPatientProfile__29314829>;
+  in roles : List__415060402<(Principal, OldUserRole__889293160)>;
+  in services : List__415060402<OldService__50551026>;
+  in state : OldPricingState__899356834
+}, {
+  stable articles :
+    {
+      var blockIndex : Nat__490723111;
+      var blocks : [var [var ?Article__693132840]];
+      var elementIndex : Nat__490723111
+    };
   stable auditLog :
     {
       var blockIndex : Nat__490723111;
@@ -116,9 +296,11 @@ actor {
     };
   stable state :
     {
+      var articlesSeedDone : Bool;
+      var nextArticleId : Nat;
       var nextAuditId : Nat;
       var nextBookingId : Nat;
       var nextServiceId : Nat;
       var pricingConfig : PricingConfig__959556763
     }
-};
+});

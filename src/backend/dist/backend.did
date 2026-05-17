@@ -17,6 +17,16 @@ type Service =
    name: text;
    updatedAt: int;
  };
+type Result_1 = 
+ variant {
+   err: text;
+   ok: nat;
+ };
+type Result = 
+ variant {
+   err: text;
+   ok: text;
+ };
 type PricingConfig = 
  record {
    holidaySurchargePct: nat;
@@ -31,17 +41,39 @@ type PricingAuditEntry =
    changedAt: int;
    id: nat;
  };
+type PatientSummary = 
+ record {
+   fullName: text;
+   ktpPhotoUrl: text;
+   nik: text;
+   "principal": principal;
+   selfieUrl: text;
+   submittedAt: int;
+   verificationStatus: text;
+ };
 type PatientProfile = 
  record {
+   address: opt text;
    age: nat;
    allergies: text;
+   birthDate: opt text;
    bloodType: text;
    conditions: text;
    createdAt: int;
-   emergencyContact: text;
+   email: opt text;
+   emergencyContactName: opt text;
+   emergencyContactPhone: opt text;
+   emergencyContactRelation: opt text;
+   gender: opt text;
+   ktpPhotoUrl: opt text;
    name: text;
+   nik: opt text;
+   passwordHash: opt text;
+   phoneNumber: opt text;
    "principal": principal;
+   selfieWithKtpUrl: opt text;
    updatedAt: int;
+   verificationStatus: text;
  };
 type NurseStatus = 
  variant {
@@ -51,18 +83,40 @@ type NurseStatus =
  };
 type NurseProfile = 
  record {
+   additionalCertificates: opt text;
    createdAt: int;
+   currentFacilityType: opt text;
+   currentWorkDuration: opt nat;
+   currentWorkplace: opt text;
+   email: opt text;
+   emergencyCertExpiry: opt text;
+   emergencyCertification: opt text;
+   employeeIdCardUrl: opt text;
    experienceYears: nat;
+   graduationYear: opt nat;
+   ijazahDocumentUrl: opt text;
    ktpDocUrl: text;
+   ktpPhotoUrl: opt text;
    latitude: opt float64;
    locationUpdatedAt: opt int;
    longitude: opt float64;
+   medicalCompetencies: opt text;
    name: text;
+   passwordHash: opt text;
+   previousFacilityType: opt text;
+   previousWorkHistory: opt text;
    "principal": principal;
+   profession: opt text;
+   professionalOrg: opt text;
+   selfieWithKtpUrl: opt text;
    specialization: text;
    status: NurseStatus;
    strDocUrl: text;
+   strDocumentUrl: opt text;
+   strExpiry: opt text;
    strNumber: text;
+   totalExperienceYears: opt nat;
+   university: opt text;
    updatedAt: int;
  };
 type BookingStatus = 
@@ -101,11 +155,32 @@ type Booking =
    updatedAt: int;
    visitReport: opt text;
  };
+type Article = 
+ record {
+   category: text;
+   content: text;
+   createdAt: int;
+   id: nat;
+   imagePrompt: text;
+   metaDescription: text;
+   references: vec text;
+   slug: text;
+   title: text;
+   updatedAt: int;
+ };
 service : {
   acceptBooking: (bookingId: nat) -> (text);
+  adminApprovePatient: (patientPrincipal: principal) -> (Result);
+  adminCreateArticle: (slug: text, title: text, metaDescription: text,
+   content: text, imagePrompt: text, references: vec text, category: 
+   text) -> (Result_1);
   adminCreateService: (name: text, description: text, category:
    ServiceCategory, baseFeeIdr: nat) -> (text);
   adminDeleteService: (id: nat) -> (text);
+  adminRejectPatient: (patientPrincipal: principal) -> (Result);
+  adminUpdateArticle: (id: nat, title: text, metaDescription: text, content:
+   text, imagePrompt: text, references: vec text, category: text) -> (
+   Result);
   adminUpdatePricing: (perKmRateIdr: nat, nightSurchargePct: nat,
    holidaySurchargePct: nat) -> (text);
   adminUpdateService: (id: nat, name: text, description: text, baseFeeIdr:
@@ -118,6 +193,8 @@ service : {
    holiday: bool) -> (opt nat) query;
   getAllBookings: () -> (vec Booking) query;
   getAllNurses: () -> (vec NurseProfile) query;
+  getAllPatients: () -> (vec PatientProfile) query;
+  getArticleBySlug: (slug: text) -> (opt Article) query;
   getBookingStats: () -> (opt BookingStats) query;
   getIncomingBookings: () -> (vec Booking) query;
   getMyBookings: () -> (vec Booking) query;
@@ -129,21 +206,54 @@ service : {
   getNurseProfile: (p: principal) -> (opt NurseProfile) query;
   getNurseSchedule: () -> (vec Booking) query;
   getPendingNurses: () -> (vec NurseProfile) query;
+  getPendingPatients: () -> (vec PatientSummary) query;
   getPricingAuditLog: () -> (vec PricingAuditEntry) query;
   getPricingConfig: () -> (PricingConfig) query;
   listAllServices: () -> (vec Service) query;
+  listArticles: (page: nat, pageSize: nat) ->
+   (record {
+      items: vec Article;
+      total: nat;
+    }) query;
   listServices: () -> (vec Service) query;
   registerAsAdmin: () -> (text);
-  registerAsNurse: (name: text, strNumber: text, specialization: text,
-   experienceYears: nat, strDocUrl: text, ktpDocUrl: text) -> (text);
+  registerAsNurse: (name: text, strNumber: text, strExpiry: text,
+   strDocumentUrl: opt text, specialization: text, profession: text,
+   university: text, graduationYear: nat, ijazahDocumentUrl: opt text,
+   professionalOrg: text, previousWorkHistory: text, totalExperienceYears:
+   nat, previousFacilityType: text, currentWorkplace: text,
+   currentWorkDuration: nat, currentFacilityType: text,
+   emergencyCertification: text, emergencyCertExpiry: text,
+   additionalCertificates: text, medicalCompetencies: text,
+   employeeIdCardUrl: opt text, ktpPhotoUrl: opt text, selfieWithKtpUrl:
+   opt text) -> (text);
   registerAsPatient: () -> (text);
   rejectBooking: (bookingId: nat) -> (text);
   rejectNurse: (nursePrincipal: principal) -> (text);
-  saveNurseProfile: (name: text, strNumber: text, specialization: text,
-   experienceYears: nat, strDocUrl: text, ktpDocUrl: text) -> (text);
-  savePatientProfile: (name: text, age: nat, conditions: text, allergies:
-   text, bloodType: text, emergencyContact: text) -> (text);
+  saveEmailPassword: (email: text, password: text) -> (Result);
+  saveNurseProfile: (name: text, strNumber: text, strExpiry: text,
+   strDocumentUrl: opt text, specialization: text, profession: text,
+   university: text, graduationYear: nat, ijazahDocumentUrl: opt text,
+   professionalOrg: text, previousWorkHistory: text, totalExperienceYears:
+   nat, previousFacilityType: text, currentWorkplace: text,
+   currentWorkDuration: nat, currentFacilityType: text,
+   emergencyCertification: text, emergencyCertExpiry: text,
+   additionalCertificates: text, medicalCompetencies: text,
+   employeeIdCardUrl: opt text, ktpPhotoUrl: opt text, selfieWithKtpUrl:
+   opt text) -> (text);
+  savePatientProfile: (name: text, nik: text, birthDate: text, age: nat,
+   gender: text, address: text, phoneNumber: text, emergencyContactName:
+   text, emergencyContactRelation: text, emergencyContactPhone: text,
+   ktpPhotoUrl: opt text, selfieWithKtpUrl: opt text, conditions: text,
+   allergies: text, bloodType: text) -> (text);
+  searchArticles: (searchQuery: text, page: nat, pageSize: nat) ->
+   (record {
+      items: vec Article;
+      total: nat;
+    }) query;
+  seedArticles: () -> (text);
   seedDefaultServices: () -> (text);
   submitVisitReport: (bookingId: nat, reportText: text) -> (text);
   updateNurseLocation: (lat: float64, lon: float64) -> (text);
+  verifyEmailPassword: (email: text, password: text) -> (Result) query;
 }

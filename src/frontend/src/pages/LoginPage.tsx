@@ -24,7 +24,6 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [selectedRole, setSelectedRole] = useState<RoleSelection>(null);
-  const [registering, setRegistering] = useState(false);
 
   const registerPatient = useMutation({
     mutationFn: () => actor!.registerAsPatient(),
@@ -33,12 +32,7 @@ export default function LoginPage() {
     },
   });
 
-  const registerNurse = useMutation({
-    mutationFn: () => actor!.registerAsNurse("", "", "", 0n, "", ""),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["myRole"] });
-    },
-  });
+  // Nurse registration navigates to the full form — no direct mutation here
 
   // Redirect if already logged in and has role
   useEffect(() => {
@@ -48,21 +42,13 @@ export default function LoginPage() {
     else if (role === "admin") navigate({ to: "/admin/dashboard" });
   }, [isLoggedIn, role, isLoading, navigate]);
 
-  const handleRoleRegister = async () => {
-    if (!selectedRole || !actor) return;
-    setRegistering(true);
-    try {
-      if (selectedRole === "patient") {
-        await registerPatient.mutateAsync();
-        navigate({ to: "/patient/dashboard" });
-      } else {
-        // For nurse, navigate to registration form to fill details
-        navigate({ to: "/nurse/register" });
-      }
-    } catch (_e) {
-      // error handled by mutation state
-    } finally {
-      setRegistering(false);
+  const handleRoleRegister = () => {
+    if (!selectedRole) return;
+    if (selectedRole === "patient") {
+      navigate({ to: "/patient/register" });
+    } else {
+      // For tenaga medis, navigate to medical staff registration form
+      navigate({ to: "/medical-staff/register" });
     }
   };
 
@@ -204,7 +190,7 @@ export default function LoginPage() {
               >
                 <Stethoscope size={36} className="text-primary mb-3" />
                 <div className="font-display text-xl font-bold text-foreground">
-                  Perawat
+                  Tenaga Medis
                 </div>
                 <div className="text-sm text-muted-foreground mt-1">
                   Bergabung sebagai tenaga medis
@@ -217,18 +203,18 @@ export default function LoginPage() {
                 variant="primary"
                 size="xl"
                 onClick={handleRoleRegister}
-                isLoading={registering || registerPatient.isPending}
+                isLoading={registerPatient.isPending}
                 rightIcon={<ArrowRight size={20} />}
                 className="w-full"
                 data-ocid="login.confirm_role_button"
               >
                 {selectedRole === "patient"
                   ? "Lanjut sebagai Pasien"
-                  : "Daftar sebagai Perawat"}
+                  : "Daftar sebagai Tenaga Medis"}
               </Button>
             )}
 
-            {(registerPatient.isError || registerNurse.isError) && (
+            {registerPatient.isError && (
               <p
                 className="text-destructive text-sm text-center mt-3"
                 data-ocid="login.error_state"

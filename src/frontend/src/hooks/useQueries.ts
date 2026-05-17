@@ -244,18 +244,52 @@ export function useRegisterAsNurse() {
     mutationFn: (args: {
       name: string;
       strNumber: string;
+      strExpiry: string;
+      strDocumentUrl: string | null;
       specialization: string;
-      experienceYears: bigint;
-      strDocUrl: string;
-      ktpDocUrl: string;
+      profession: string;
+      university: string;
+      graduationYear: bigint;
+      ijazahDocumentUrl: string | null;
+      professionalOrg: string;
+      previousWorkHistory: string;
+      totalExperienceYears: bigint;
+      previousFacilityType: string;
+      currentWorkplace: string;
+      currentWorkDuration: bigint;
+      currentFacilityType: string;
+      emergencyCertification: string;
+      emergencyCertExpiry: string;
+      additionalCertificates: string;
+      medicalCompetencies: string;
+      employeeIdCardUrl: string | null;
+      ktpPhotoUrl: string | null;
+      selfieWithKtpUrl: string | null;
     }) =>
       actor!.registerAsNurse(
         args.name,
         args.strNumber,
+        args.strExpiry,
+        args.strDocumentUrl,
         args.specialization,
-        args.experienceYears,
-        args.strDocUrl,
-        args.ktpDocUrl,
+        args.profession,
+        args.university,
+        args.graduationYear,
+        args.ijazahDocumentUrl,
+        args.professionalOrg,
+        args.previousWorkHistory,
+        args.totalExperienceYears,
+        args.previousFacilityType,
+        args.currentWorkplace,
+        args.currentWorkDuration,
+        args.currentFacilityType,
+        args.emergencyCertification,
+        args.emergencyCertExpiry,
+        args.additionalCertificates,
+        args.medicalCompetencies,
+        args.employeeIdCardUrl,
+        args.ktpPhotoUrl,
+        args.selfieWithKtpUrl,
       ),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["myRole"] }),
   });
@@ -267,19 +301,37 @@ export function useSavePatientProfile() {
   return useMutation({
     mutationFn: (args: {
       name: string;
+      nik: string;
+      birthDate: string;
       age: bigint;
+      gender: string;
+      address: string;
+      phoneNumber: string;
+      emergencyContactName: string;
+      emergencyContactRelation: string;
+      emergencyContactPhone: string;
+      ktpPhotoUrl: string | null;
+      selfieWithKtpUrl: string | null;
       conditions: string;
       allergies: string;
       bloodType: string;
-      emergencyContact: string;
     }) =>
       actor!.savePatientProfile(
         args.name,
+        args.nik,
+        args.birthDate,
         args.age,
+        args.gender,
+        args.address,
+        args.phoneNumber,
+        args.emergencyContactName,
+        args.emergencyContactRelation,
+        args.emergencyContactPhone,
+        args.ktpPhotoUrl,
+        args.selfieWithKtpUrl,
         args.conditions,
         args.allergies,
         args.bloodType,
-        args.emergencyContact,
       ),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["myPatientProfile"] }),
   });
@@ -424,6 +476,59 @@ export function useAdminDeleteService() {
   });
 }
 
+export function usePendingPatients() {
+  const { actor, isReady } = useActorReady();
+  return useQuery({
+    queryKey: ["pendingPatients"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getPendingPatients();
+    },
+    enabled: isReady,
+    refetchInterval: 15_000,
+  });
+}
+
+export function useAdminApprovePatient() {
+  const { actor } = useActorReady();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (principal: import("@icp-sdk/core/principal").Principal) =>
+      actor!.adminApprovePatient(principal),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["pendingPatients"] });
+    },
+  });
+}
+
+export function useAdminRejectPatient() {
+  const { actor } = useActorReady();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (principal: import("@icp-sdk/core/principal").Principal) =>
+      actor!.adminRejectPatient(principal),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["pendingPatients"] });
+    },
+  });
+}
+
+export function useSaveEmailPassword() {
+  const { actor } = useActorReady();
+  return useMutation({
+    mutationFn: ({ email, password }: { email: string; password: string }) =>
+      actor!.saveEmailPassword(email, password),
+  });
+}
+
+export function useVerifyEmailPassword() {
+  const { actor } = useActorReady();
+  return useMutation({
+    mutationFn: ({ email, password }: { email: string; password: string }) =>
+      actor!.verifyEmailPassword(email, password),
+  });
+}
+
 export function useUpdateNurseLocation() {
   const { actor } = useActorReady();
   return useMutation({
@@ -432,25 +537,98 @@ export function useUpdateNurseLocation() {
   });
 }
 
+// Article hooks (client-side data, no actor needed)
+export function useArticles() {
+  return useQuery({
+    queryKey: ["articles"],
+    queryFn: async () => {
+      const { articles } = await import("@/data/articles");
+      return articles;
+    },
+    staleTime: Number.POSITIVE_INFINITY,
+  });
+}
+
+export function useArticleBySlug(slug: string) {
+  return useQuery({
+    queryKey: ["article", slug],
+    queryFn: async () => {
+      const { articles } = await import("@/data/articles");
+      return articles.find((a) => a.slug === slug) ?? null;
+    },
+    staleTime: Number.POSITIVE_INFINITY,
+    enabled: !!slug,
+  });
+}
+
+export function useArticlesByCategory(category: string) {
+  return useQuery({
+    queryKey: ["articles", "category", category],
+    queryFn: async () => {
+      const { articles } = await import("@/data/articles");
+      if (category === "Semua") return articles;
+      return articles.filter((a) => a.category === category);
+    },
+    staleTime: Number.POSITIVE_INFINITY,
+    enabled: !!category,
+  });
+}
+
 export function useSaveNurseProfile() {
+  // placeholder - keep existing function
+
   const { actor } = useActorReady();
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (args: {
       name: string;
       strNumber: string;
+      strExpiry: string;
+      strDocumentUrl: string | null;
       specialization: string;
-      experienceYears: bigint;
-      strDocUrl: string;
-      ktpDocUrl: string;
+      profession: string;
+      university: string;
+      graduationYear: bigint;
+      ijazahDocumentUrl: string | null;
+      professionalOrg: string;
+      previousWorkHistory: string;
+      totalExperienceYears: bigint;
+      previousFacilityType: string;
+      currentWorkplace: string;
+      currentWorkDuration: bigint;
+      currentFacilityType: string;
+      emergencyCertification: string;
+      emergencyCertExpiry: string;
+      additionalCertificates: string;
+      medicalCompetencies: string;
+      employeeIdCardUrl: string | null;
+      ktpPhotoUrl: string | null;
+      selfieWithKtpUrl: string | null;
     }) =>
       actor!.saveNurseProfile(
         args.name,
         args.strNumber,
+        args.strExpiry,
+        args.strDocumentUrl,
         args.specialization,
-        args.experienceYears,
-        args.strDocUrl,
-        args.ktpDocUrl,
+        args.profession,
+        args.university,
+        args.graduationYear,
+        args.ijazahDocumentUrl,
+        args.professionalOrg,
+        args.previousWorkHistory,
+        args.totalExperienceYears,
+        args.previousFacilityType,
+        args.currentWorkplace,
+        args.currentWorkDuration,
+        args.currentFacilityType,
+        args.emergencyCertification,
+        args.emergencyCertExpiry,
+        args.additionalCertificates,
+        args.medicalCompetencies,
+        args.employeeIdCardUrl,
+        args.ktpPhotoUrl,
+        args.selfieWithKtpUrl,
       ),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["myNurseProfile"] }),
   });

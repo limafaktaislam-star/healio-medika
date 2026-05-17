@@ -23,13 +23,21 @@ const NurseSchedule = lazy(() => import("@/pages/nurse/Schedule"));
 const NurseBookings = lazy(() => import("@/pages/nurse/Bookings"));
 const NurseProfile = lazy(() => import("@/pages/nurse/Profile"));
 const NurseRegister = lazy(() => import("@/pages/nurse/Register"));
+const MedicalStaffRegisterPage = lazy(
+  () => import("@/pages/MedicalStaffRegisterPage"),
+);
+const PatientRegisterPage = lazy(() => import("@/pages/PatientRegisterPage"));
 
-// Admin pages
+// Article pages
+const ArticlesPage = lazy(() => import("@/pages/ArticlesPage"));
+const ArticleDetailPage = lazy(() => import("@/pages/ArticleDetailPage"));
+
 const AdminDashboard = lazy(() => import("@/pages/admin/Dashboard"));
 const AdminNurses = lazy(() => import("@/pages/admin/Nurses"));
 const AdminBookings = lazy(() => import("@/pages/admin/Bookings"));
 const AdminServices = lazy(() => import("@/pages/admin/Services"));
 const AdminPricing = lazy(() => import("@/pages/admin/Pricing"));
+const AdminPatients = lazy(() => import("@/pages/admin/Patients"));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-screen bg-background">
@@ -150,6 +158,26 @@ const nurseProfileRoute = createRoute({
   ),
 });
 
+const patientRegisterRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/patient/register",
+  component: () => (
+    <Suspense fallback={<PageLoader />}>
+      <PatientRegisterPage />
+    </Suspense>
+  ),
+});
+
+const medicalStaffRegisterRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/medical-staff/register",
+  component: () => (
+    <Suspense fallback={<PageLoader />}>
+      <MedicalStaffRegisterPage />
+    </Suspense>
+  ),
+});
+
 const nurseRegisterRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/nurse/register",
@@ -201,12 +229,42 @@ const adminServicesRoute = createRoute({
   ),
 });
 
+const adminPatientsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin/patients",
+  component: () => (
+    <Suspense fallback={<PageLoader />}>
+      <AdminPatients />
+    </Suspense>
+  ),
+});
+
 const adminPricingRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/admin/pricing",
   component: () => (
     <Suspense fallback={<PageLoader />}>
       <AdminPricing />
+    </Suspense>
+  ),
+});
+
+const articlesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/articles",
+  component: () => (
+    <Suspense fallback={<PageLoader />}>
+      <ArticlesPage />
+    </Suspense>
+  ),
+});
+
+const articleDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/articles/$slug",
+  component: () => (
+    <Suspense fallback={<PageLoader />}>
+      <ArticleDetailPage />
     </Suspense>
   ),
 });
@@ -223,12 +281,17 @@ const routeTree = rootRoute.addChildren([
   nurseScheduleRoute,
   nurseBookingsRoute,
   nurseProfileRoute,
+  patientRegisterRoute,
+  medicalStaffRegisterRoute,
   nurseRegisterRoute,
   adminDashboardRoute,
   adminNursesRoute,
   adminBookingsRoute,
   adminServicesRoute,
   adminPricingRoute,
+  adminPatientsRoute,
+  articlesRoute,
+  articleDetailRoute,
 ]);
 
 const router = createRouter({ routeTree });

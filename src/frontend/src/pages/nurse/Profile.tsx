@@ -56,17 +56,34 @@ export default function NurseProfile() {
       if (!actor) throw new Error("actor tidak siap");
       const strUrl = strFile
         ? await uploadFile(strFile)
-        : (profile?.strDocUrl ?? "");
+        : (profile?.strDocumentUrl ?? profile?.strDocUrl ?? null);
       const ktpUrl = ktpFile
         ? await uploadFile(ktpFile)
-        : (profile?.ktpDocUrl ?? "");
+        : (profile?.ktpPhotoUrl ?? profile?.ktpDocUrl ?? null);
       return actor.saveNurseProfile(
         name,
         strNumber,
-        specialization,
-        BigInt(experienceYears),
+        profile?.strExpiry ?? "",
         strUrl,
+        specialization,
+        profile?.profession ?? "perawat",
+        profile?.university ?? "",
+        profile?.graduationYear ?? 0n,
+        profile?.ijazahDocumentUrl ?? null,
+        profile?.professionalOrg ?? "",
+        profile?.previousWorkHistory ?? "",
+        profile?.totalExperienceYears ?? 0n,
+        profile?.previousFacilityType ?? "",
+        profile?.currentWorkplace ?? "",
+        profile?.currentWorkDuration ?? 0n,
+        profile?.currentFacilityType ?? "",
+        profile?.emergencyCertification ?? "",
+        profile?.emergencyCertExpiry ?? "",
+        profile?.additionalCertificates ?? "",
+        profile?.medicalCompetencies ?? "",
+        profile?.employeeIdCardUrl ?? null,
         ktpUrl,
+        profile?.selfieWithKtpUrl ?? null,
       );
     },
     onSuccess: () => {

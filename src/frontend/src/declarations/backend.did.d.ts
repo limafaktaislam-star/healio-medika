@@ -10,6 +10,18 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface Article {
+  'id' : bigint,
+  'metaDescription' : string,
+  'title' : string,
+  'references' : Array<string>,
+  'content' : string,
+  'createdAt' : bigint,
+  'slug' : string,
+  'updatedAt' : bigint,
+  'category' : string,
+  'imagePrompt' : string,
+}
 export interface Booking {
   'id' : bigint,
   'status' : BookingStatus,
@@ -42,33 +54,76 @@ export type BookingStatus = { 'cancelled' : null } |
   { 'rejected' : null } |
   { 'accepted' : null };
 export interface NurseProfile {
+  'previousWorkHistory' : [] | [string],
   'status' : NurseStatus,
   'latitude' : [] | [number],
   'strNumber' : string,
   'principal' : Principal,
+  'emergencyCertExpiry' : [] | [string],
+  'strExpiry' : [] | [string],
   'locationUpdatedAt' : [] | [bigint],
   'name' : string,
   'createdAt' : bigint,
+  'profession' : [] | [string],
+  'currentWorkDuration' : [] | [bigint],
+  'graduationYear' : [] | [bigint],
+  'strDocumentUrl' : [] | [string],
+  'previousFacilityType' : [] | [string],
+  'email' : [] | [string],
+  'totalExperienceYears' : [] | [bigint],
+  'university' : [] | [string],
+  'additionalCertificates' : [] | [string],
+  'ktpPhotoUrl' : [] | [string],
   'updatedAt' : bigint,
   'experienceYears' : bigint,
   'strDocUrl' : string,
+  'currentFacilityType' : [] | [string],
   'longitude' : [] | [number],
+  'ijazahDocumentUrl' : [] | [string],
   'ktpDocUrl' : string,
   'specialization' : string,
+  'medicalCompetencies' : [] | [string],
+  'passwordHash' : [] | [string],
+  'selfieWithKtpUrl' : [] | [string],
+  'emergencyCertification' : [] | [string],
+  'employeeIdCardUrl' : [] | [string],
+  'currentWorkplace' : [] | [string],
+  'professionalOrg' : [] | [string],
 }
 export type NurseStatus = { 'verified' : null } |
   { 'pending_verification' : null } |
   { 'rejected' : null };
 export interface PatientProfile {
   'age' : bigint,
+  'nik' : [] | [string],
   'principal' : Principal,
   'bloodType' : string,
+  'birthDate' : [] | [string],
   'name' : string,
   'createdAt' : bigint,
-  'emergencyContact' : string,
+  'email' : [] | [string],
+  'emergencyContactRelation' : [] | [string],
+  'ktpPhotoUrl' : [] | [string],
   'updatedAt' : bigint,
+  'address' : [] | [string],
+  'gender' : [] | [string],
+  'emergencyContactPhone' : [] | [string],
   'conditions' : string,
+  'passwordHash' : [] | [string],
+  'emergencyContactName' : [] | [string],
+  'selfieWithKtpUrl' : [] | [string],
+  'phoneNumber' : [] | [string],
   'allergies' : string,
+  'verificationStatus' : string,
+}
+export interface PatientSummary {
+  'nik' : string,
+  'principal' : Principal,
+  'fullName' : string,
+  'submittedAt' : bigint,
+  'selfieUrl' : string,
+  'ktpPhotoUrl' : string,
+  'verificationStatus' : string,
 }
 export interface PricingAuditEntry {
   'id' : bigint,
@@ -82,6 +137,10 @@ export interface PricingConfig {
   'updatedAt' : bigint,
   'perKmRateIdr' : bigint,
 }
+export type Result = { 'ok' : string } |
+  { 'err' : string };
+export type Result_1 = { 'ok' : bigint } |
+  { 'err' : string };
 export interface Service {
   'id' : bigint,
   'baseFeeIdr' : bigint,
@@ -99,11 +158,21 @@ export type ServiceCategory = { 'postopcare' : null } |
   { 'physiotherapy' : null };
 export interface _SERVICE {
   'acceptBooking' : ActorMethod<[bigint], string>,
+  'adminApprovePatient' : ActorMethod<[Principal], Result>,
+  'adminCreateArticle' : ActorMethod<
+    [string, string, string, string, string, Array<string>, string],
+    Result_1
+  >,
   'adminCreateService' : ActorMethod<
     [string, string, ServiceCategory, bigint],
     string
   >,
   'adminDeleteService' : ActorMethod<[bigint], string>,
+  'adminRejectPatient' : ActorMethod<[Principal], Result>,
+  'adminUpdateArticle' : ActorMethod<
+    [bigint, string, string, string, string, Array<string>, string],
+    Result
+  >,
   'adminUpdatePricing' : ActorMethod<[bigint, bigint, bigint], string>,
   'adminUpdateService' : ActorMethod<[bigint, string, string, bigint], string>,
   'approveNurse' : ActorMethod<[Principal], string>,
@@ -118,6 +187,8 @@ export interface _SERVICE {
   >,
   'getAllBookings' : ActorMethod<[], Array<Booking>>,
   'getAllNurses' : ActorMethod<[], Array<NurseProfile>>,
+  'getAllPatients' : ActorMethod<[], Array<PatientProfile>>,
+  'getArticleBySlug' : ActorMethod<[string], [] | [Article]>,
   'getBookingStats' : ActorMethod<[], [] | [BookingStats]>,
   'getIncomingBookings' : ActorMethod<[], Array<Booking>>,
   'getMyBookings' : ActorMethod<[], Array<Booking>>,
@@ -131,29 +202,105 @@ export interface _SERVICE {
   'getNurseProfile' : ActorMethod<[Principal], [] | [NurseProfile]>,
   'getNurseSchedule' : ActorMethod<[], Array<Booking>>,
   'getPendingNurses' : ActorMethod<[], Array<NurseProfile>>,
+  'getPendingPatients' : ActorMethod<[], Array<PatientSummary>>,
   'getPricingAuditLog' : ActorMethod<[], Array<PricingAuditEntry>>,
   'getPricingConfig' : ActorMethod<[], PricingConfig>,
   'listAllServices' : ActorMethod<[], Array<Service>>,
+  'listArticles' : ActorMethod<
+    [bigint, bigint],
+    { 'total' : bigint, 'items' : Array<Article> }
+  >,
   'listServices' : ActorMethod<[], Array<Service>>,
   'registerAsAdmin' : ActorMethod<[], string>,
   'registerAsNurse' : ActorMethod<
-    [string, string, string, bigint, string, string],
+    [
+      string,
+      string,
+      string,
+      [] | [string],
+      string,
+      string,
+      string,
+      bigint,
+      [] | [string],
+      string,
+      string,
+      bigint,
+      string,
+      string,
+      bigint,
+      string,
+      string,
+      string,
+      string,
+      string,
+      [] | [string],
+      [] | [string],
+      [] | [string],
+    ],
     string
   >,
   'registerAsPatient' : ActorMethod<[], string>,
   'rejectBooking' : ActorMethod<[bigint], string>,
   'rejectNurse' : ActorMethod<[Principal], string>,
+  'saveEmailPassword' : ActorMethod<[string, string], Result>,
   'saveNurseProfile' : ActorMethod<
-    [string, string, string, bigint, string, string],
+    [
+      string,
+      string,
+      string,
+      [] | [string],
+      string,
+      string,
+      string,
+      bigint,
+      [] | [string],
+      string,
+      string,
+      bigint,
+      string,
+      string,
+      bigint,
+      string,
+      string,
+      string,
+      string,
+      string,
+      [] | [string],
+      [] | [string],
+      [] | [string],
+    ],
     string
   >,
   'savePatientProfile' : ActorMethod<
-    [string, bigint, string, string, string, string],
+    [
+      string,
+      string,
+      string,
+      bigint,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      [] | [string],
+      [] | [string],
+      string,
+      string,
+      string,
+    ],
     string
   >,
+  'searchArticles' : ActorMethod<
+    [string, bigint, bigint],
+    { 'total' : bigint, 'items' : Array<Article> }
+  >,
+  'seedArticles' : ActorMethod<[], string>,
   'seedDefaultServices' : ActorMethod<[], string>,
   'submitVisitReport' : ActorMethod<[bigint, string], string>,
   'updateNurseLocation' : ActorMethod<[number, number], string>,
+  'verifyEmailPassword' : ActorMethod<[string, string], Result>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

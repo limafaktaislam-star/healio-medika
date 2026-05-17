@@ -29,10 +29,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 // --- Data ---
 
 const SLIDES = [
-  { src: "/assets/slide1.png", alt: "Perawat homecare profesional" },
-  { src: "/assets/slide2.png", alt: "Layanan kesehatan di rumah" },
-  { src: "/assets/slide3.png", alt: "Tim medis Healio Medika" },
-  { src: "/assets/slide4.png", alt: "Ambulans dan tenaga medis siap" },
+  {
+    src: "/assets/healio-slide1.png",
+    alt: "Perawat homecare profesional Healio Medika",
+  },
+  { src: "/assets/healio-slide2.png", alt: "Ruang konsultasi Healio Medika" },
+  { src: "/assets/healio-slide3.png", alt: "Apotek Healio Medika" },
 ];
 
 const SERVICES: Array<{ category: FrontendCategory }> = [
@@ -382,7 +384,13 @@ function LoginInfoSection() {
               {/* Button */}
               <button
                 type="button"
-                onClick={() => navigate({ to: "/login" })}
+                onClick={() => {
+                  if (portal.label === "PASIEN")
+                    navigate({ to: "/patient/register" });
+                  else if (portal.label === "TENAGA MEDIS")
+                    navigate({ to: "/medical-staff/register" });
+                  else navigate({ to: "/login" });
+                }}
                 className="w-full py-3 rounded-xl font-bold text-sm transition-all duration-200 hover:opacity-90 hover:shadow-md"
                 style={portal.buttonStyle}
                 data-ocid={portal.ocid}
@@ -892,7 +900,7 @@ export default function LandingPage() {
             <div className="flex flex-col sm:flex-row gap-3 p-2">
               <Button
                 size="lg"
-                onClick={() => navigate({ to: "/login" })}
+                onClick={() => navigate({ to: "/patient/register" })}
                 data-ocid="landing.bottom_cta_pasien_button"
                 className="font-bold text-base px-8 rounded-xl"
                 style={{
@@ -907,7 +915,7 @@ export default function LandingPage() {
               <Button
                 variant="outline"
                 size="lg"
-                onClick={() => navigate({ to: "/login" })}
+                onClick={() => navigate({ to: "/medical-staff/register" })}
                 data-ocid="landing.bottom_cta_perawat_button"
                 className="font-semibold text-base px-8 rounded-xl"
                 style={{

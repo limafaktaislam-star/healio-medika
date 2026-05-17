@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import {
   Activity,
+  BookOpen,
   CalendarDays,
   ChevronRight,
   ClipboardList,
@@ -12,6 +13,7 @@ import {
   Settings,
   Shield,
   Stethoscope,
+  UserCheck,
   Users,
   X,
 } from "lucide-react";
@@ -59,6 +61,11 @@ const ADMIN_NAV: NavItem[] = [
     to: "/admin/nurses",
     label: "Verifikasi Perawat",
     icon: <Shield size={20} />,
+  },
+  {
+    to: "/admin/patients",
+    label: "Verifikasi Pasien",
+    icon: <UserCheck size={20} />,
   },
   {
     to: "/admin/bookings",
@@ -157,11 +164,21 @@ export function Layout({ children, showSidebar = true }: LayoutProps) {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Informasi Kesehatan link — visible to all */}
+            <Link
+              to="/articles"
+              className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg transition-smooth hover:bg-white/10"
+              style={{ color: "rgba(255,255,255,0.85)" }}
+              data-ocid="layout.articles_link"
+            >
+              <BookOpen size={15} />
+              Informasi Kesehatan
+            </Link>
             {!isLoggedIn && (
               <>
                 <button
                   type="button"
-                  onClick={() => navigate({ to: "/login" })}
+                  onClick={() => navigate({ to: "/patient/register" })}
                   data-ocid="layout.daftar_pasien_button"
                   className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-lg transition-smooth"
                   style={{
@@ -175,7 +192,7 @@ export function Layout({ children, showSidebar = true }: LayoutProps) {
                 </button>
                 <button
                   type="button"
-                  onClick={() => navigate({ to: "/login" })}
+                  onClick={() => navigate({ to: "/medical-staff/register" })}
                   data-ocid="layout.daftar_medis_button"
                   className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-lg transition-smooth"
                   style={{
