@@ -6,12 +6,16 @@ import Int "mo:core/Int";
 import Nat "mo:core/Nat";
 import Text "mo:core/Text";
 import Array "mo:core/Array";
-import Migration "./migration";
 import Nat32 "mo:core/Nat32";
 import Char "mo:core/Char";
+import Map "mo:core/Map";
+import WalletTypes "types/wallet";
+import WalletLib "lib/wallet";
 
 
-(with migration = Migration.run)
+
+
+
 actor {
 
   // ============================================================
@@ -188,17 +192,69 @@ actor {
     rejected : Nat;
   };
 
+  public type DrugStock = {
+    drugName : Text;
+    category : Text;
+    priceIdr : Nat;
+    available : Bool;
+    quantity : Nat;
+  };
+
+  public type Pharmacy = {
+    id : Nat;
+    name : Text;
+    address : Text;
+    phone : Text;
+    lat : Float;
+    lon : Float;
+    openTime : Text;
+    closeTime : Text;
+    drugs : [DrugStock];
+  };
+
+  // ============================================================
+  // ACTIVITY LOG TYPE
+  // ============================================================
+
+  public type ActivityEntry = {
+    id : Nat;
+    timestamp : Int;
+    actorEmail : Text;
+    actorRole : Text;
+    actionType : Text;
+    description : Text;
+    metadata : Text;
+  };
+
+  // ============================================================
+  // PLATFORM SETTINGS TYPE
+  // ============================================================
+
+  public type PlatformSettings = {
+    appName : Text;
+    supportPhone : Text;
+    supportEmail : Text;
+    maintenanceMode : Bool;
+  };
+
   // ============================================================
   // STATE
   // ============================================================
 
-  let roles        = List.empty<(Principal, UserRole)>();
+  var roles        = List.empty<(Principal, UserRole)>();
   let patients     = List.empty<PatientProfile>();
   let nurses       = List.empty<NurseProfile>();
   let services     = List.empty<Service>();
   let bookings     = List.empty<Booking>();
   let auditLog     = List.empty<PricingAuditEntry>();
   let articles     = List.empty<Article>();
+  let pharmacies   = List.empty<Pharmacy>();
+  let activityLog  = List.empty<ActivityEntry>();
+
+  // Wallet state
+  let wallet_balances = Map.empty<Principal, WalletTypes.WalletBalance>();
+  let wallet_transactions = List.empty<WalletTypes.WalletTransaction>();
+  let wallet_state = { var nextTxId : Nat = 1 };
 
   let state = {
     var pricingConfig : PricingConfig = {
@@ -212,6 +268,166 @@ actor {
     var nextAuditId   : Nat = 1;
     var nextArticleId : Nat = 1;
     var articlesSeedDone : Bool = false;
+    var pharmacySeedDone : Bool = false;
+  };
+
+  // These are separate top-level fields so they get default values on upgrade
+  // (avoids M0170 stable compatibility error when added to an existing deployment)
+  var nextActivityId : Nat = 1;
+  var accountsSeedDone : Bool = false;
+  var platformSettings : PlatformSettings = {
+    appName = "HEALIO MEDIKA";
+    supportPhone = "+62-800-HEALIO";
+    supportEmail = "support@healiomedika.id";
+    maintenanceMode = false;
+  };
+
+  // ============================================================
+  // AUDIT LOG HELPER
+  // ============================================================
+
+  func addAuditEntry(actorEmail : Text, actorRole : Text, actionType : Text, description : Text, metadata : Text) {
+    let id = nextActivityId;
+    nextActivityId += 1;
+    // Cap at 10000 — drop oldest if exceeded
+    if (activityLog.size() >= 10000) {
+      activityLog.truncate(9999);
+    };
+    activityLog.add({
+      id = id;
+      timestamp = Time.now();
+      actorEmail = actorEmail;
+      actorRole = actorRole;
+      actionType = actionType;
+      description = description;
+      metadata = metadata;
+    });
+  };
+
+  // Resolve email from principal (check patients, nurses; fallback to principal text)
+  func principalToEmail(p : Principal) : Text {
+    switch (patients.find(func(pat : PatientProfile) : Bool { Principal.equal(pat.principal, p) })) {
+      case (?pat) { switch (pat.email) { case (?e) e; case null p.toText() } };
+      case null {
+        switch (nurses.find(func(n : NurseProfile) : Bool { Principal.equal(n.principal, p) })) {
+          case (?n) { switch (n.email) { case (?e) e; case null p.toText() } };
+          case null { p.toText() };
+        };
+      };
+    };
+  };
+
+  func roleText(p : Principal) : Text {
+    switch (getRole(p)) {
+      case (? #admin)   "admin";
+      case (? #nurse)   "nurse";
+      case (? #patient) "patient";
+      case null         "anonymous";
+    };
+  };
+
+  // ============================================================
+  // SEED PERMANENT ACCOUNTS
+  // ============================================================
+
+  func seedPermanentAccounts() {
+    if (accountsSeedDone) { return };
+    accountsSeedDone := true;
+    let now = Time.now();
+    let hAdmin   = hashPassword("Admin123@");
+    let hMedis   = hashPassword("Medis123@");
+    let hPasien  = hashPassword("Pasien123@");
+    // We store seed accounts as synthetic principal-less entries using a sentinel approach:
+    // Use a dedicated seedAccounts list keyed by email.
+    // Since the existing architecture ties profiles to Internet Identity Principals,
+    // we store them with anonymous principal and a seeded flag so verifyEmailPassword
+    // can find them by email.
+    // Seed admin patient record (used only for login lookup)
+    patients.add({
+      principal                = Principal.fromText("aaaaa-aa");
+      name                     = "Administrator";
+      nik                      = ?"0000000000000001";
+      birthDate                = ?"1990-01-01";
+      age                      = 34;
+      gender                   = ?"Laki-laki";
+      address                  = ?"Jl. Admin No. 1, Jakarta";
+      phoneNumber              = ?"+62811111111";
+      emergencyContactName     = ?"Admin";
+      emergencyContactRelation = ?"Self";
+      emergencyContactPhone    = ?"+62811111111";
+      ktpPhotoUrl              = null;
+      selfieWithKtpUrl         = null;
+      email                    = ?"limafaktaislam@gmail.com";
+      passwordHash             = ?hAdmin;
+      verificationStatus       = "verified";
+      conditions               = "";
+      allergies                = "";
+      bloodType                = "";
+      createdAt                = now;
+      updatedAt                = now;
+    });
+    // Seed nurse (medis) account
+    nurses.add({
+      principal              = Principal.fromText("2vxsx-fae");
+      name                   = "Endang Hulaepi (Medis)";
+      specialization         = "Perawat Umum";
+      profession             = ?"Perawat";
+      email                  = ?"endanghulaepi06@gmail.com";
+      passwordHash           = ?hMedis;
+      status                 = #verified;
+      strNumber              = "STR-SEED-001";
+      strExpiry              = ?"2026-12-31";
+      strDocumentUrl         = null;
+      university             = ?"Universitas Indonesia";
+      graduationYear         = ?2015;
+      ijazahDocumentUrl      = null;
+      professionalOrg        = ?"PPNI";
+      previousWorkHistory    = ?"RSUP Dr. Cipto Mangunkusumo";
+      totalExperienceYears   = ?9;
+      previousFacilityType   = ?"Rumah Sakit";
+      currentWorkplace       = ?"Healio Medika";
+      currentWorkDuration    = ?1;
+      currentFacilityType    = ?"Klinik";
+      emergencyCertification = ?"BTCLS";
+      emergencyCertExpiry    = ?"2026-06-30";
+      additionalCertificates = null;
+      medicalCompetencies    = ?"Perawatan Luka, Injeksi, Pemasangan NGT";
+      employeeIdCardUrl      = null;
+      ktpPhotoUrl            = null;
+      selfieWithKtpUrl       = null;
+      experienceYears        = 9;
+      strDocUrl              = "";
+      ktpDocUrl              = "";
+      latitude               = null;
+      longitude              = null;
+      locationUpdatedAt      = null;
+      createdAt              = now;
+      updatedAt              = now;
+    });
+    // Seed patient account for endanghulaepi14
+    patients.add({
+      principal                = Principal.fromText("6fyp7-jaaa-aaaaa-aaaap-4ai");
+      name                     = "Endang Hulaepi (Pasien)";
+      nik                      = ?"0000000000000002";
+      birthDate                = ?"1985-05-15";
+      age                      = 39;
+      gender                   = ?"Perempuan";
+      address                  = ?"Jl. Pasien No. 2, Bandung";
+      phoneNumber              = ?"+62822222222";
+      emergencyContactName     = ?"Keluarga";
+      emergencyContactRelation = ?"Saudara";
+      emergencyContactPhone    = ?"+62822222222";
+      ktpPhotoUrl              = null;
+      selfieWithKtpUrl         = null;
+      email                    = ?"endanghulaepi14@gmail.com";
+      passwordHash             = ?hPasien;
+      verificationStatus       = "verified";
+      conditions               = "";
+      allergies                = "";
+      bloodType                = "";
+      createdAt                = now;
+      updatedAt                = now;
+    });
   };
 
   // ============================================================
@@ -294,6 +510,7 @@ actor {
       case null {};
     };
     roles.add((caller, #patient));
+    addAuditEntry(caller.toText(), "patient", "REGISTER", "New patient registered", "");
     "ok"
   };
 
@@ -328,6 +545,7 @@ actor {
       case null {};
     };
     roles.add((caller, #nurse));
+    addAuditEntry(caller.toText(), "nurse", "REGISTER", "New nurse registered", "");
     let now = Time.now();
     nurses.add({
       principal             = caller;
@@ -398,32 +616,88 @@ actor {
     };
   };
 
-  // Verify email+password for the caller's principal
-  public shared query ({ caller }) func verifyEmailPassword(email : Text, password : Text) : async Result<Text, Text> {
-    if (caller.isAnonymous()) { return #err("not authenticated") };
+  // Verify email+password — checks stored accounts (permanent seed + registered users)
+  // Works with anonymous callers (no auth required)
+  public shared func verifyEmailPassword(email : Text, password : Text) : async Result<Text, Text> {
+    // Ensure seed accounts exist
+    seedPermanentAccounts();
     let h = hashPassword(password);
-    switch (getRole(caller)) {
-      case (? #patient) {
-        switch (patients.find(func(p : PatientProfile) : Bool { Principal.equal(p.principal, caller) })) {
-          case (?p) {
-            if (p.email == ?email and p.passwordHash == ?h) { #ok("patient") }
-            else { #err("invalid credentials") };
-          };
-          case null { #err("profile not found") };
-        };
+    // Check admin seed first (hardcoded email)
+    if (email == "limafaktaislam@gmail.com") {
+      let hAdmin = hashPassword("Admin123@");
+      if (h == hAdmin) {
+        addAuditEntry(email, "admin", "LOGIN", "Admin login via email", "");
+        return #ok("admin");
+      } else {
+        return #err("invalid credentials");
       };
-      case (? #nurse) {
-        switch (nurses.find(func(n : NurseProfile) : Bool { Principal.equal(n.principal, caller) })) {
-          case (?n) {
-            if (n.email == ?email and n.passwordHash == ?h) { #ok("nurse") }
-            else { #err("invalid credentials") };
-          };
-          case null { #err("profile not found") };
-        };
-      };
-      case (? #admin) { #ok("admin") };
-      case _ { #err("not registered") };
     };
+    // Check nurse accounts
+    switch (nurses.find(func(n : NurseProfile) : Bool { n.email == ?email })) {
+      case (?n) {
+        if (n.passwordHash == ?h) {
+          addAuditEntry(email, "nurse", "LOGIN", "Nurse login via email", "");
+          return #ok("nurse");
+        } else {
+          return #err("invalid credentials");
+        };
+      };
+      case null {};
+    };
+    // Check patient accounts
+    switch (patients.find(func(p : PatientProfile) : Bool { p.email == ?email })) {
+      case (?p) {
+        if (p.passwordHash == ?h) {
+          addAuditEntry(email, "patient", "LOGIN", "Patient login via email", "");
+          return #ok("patient");
+        } else {
+          return #err("invalid credentials");
+        };
+      };
+      case null {};
+    };
+    #err("not registered");
+  };
+
+  // Login with email/password — returns role on success (callable anonymously)
+  public shared func loginWithEmail(email : Text, password : Text) : async Result<{ role : Text }, Text> {
+    seedPermanentAccounts();
+    let h = hashPassword(password);
+    // Admin (hardcoded)
+    if (email == "limafaktaislam@gmail.com") {
+      let hAdmin = hashPassword("Admin123@");
+      if (h == hAdmin) {
+        addAuditEntry(email, "admin", "LOGIN", "Admin login", "");
+        return #ok({ role = "admin" });
+      } else {
+        return #err("invalid credentials");
+      };
+    };
+    // Nurse accounts
+    switch (nurses.find(func(n : NurseProfile) : Bool { n.email == ?email })) {
+      case (?n) {
+        if (n.passwordHash == ?h) {
+          addAuditEntry(email, "nurse", "LOGIN", "Nurse login", "");
+          return #ok({ role = "nurse" });
+        } else {
+          return #err("invalid credentials");
+        };
+      };
+      case null {};
+    };
+    // Patient accounts
+    switch (patients.find(func(p : PatientProfile) : Bool { p.email == ?email })) {
+      case (?p) {
+        if (p.passwordHash == ?h) {
+          addAuditEntry(email, "patient", "LOGIN", "Patient login", "");
+          return #ok({ role = "patient" });
+        } else {
+          return #err("invalid credentials");
+        };
+      };
+      case null {};
+    };
+    #err("not registered");
   };
 
   public shared ({ caller }) func registerAsAdmin() : async Text {
@@ -433,6 +707,7 @@ actor {
       case null {};
     };
     roles.add((caller, #admin));
+    addAuditEntry(caller.toText(), "admin", "REGISTER", "New admin registered", "");
     "ok"
   };
 
@@ -756,6 +1031,8 @@ actor {
     };
     let now = Time.now();
     let id = state.nextBookingId;
+    addAuditEntry(principalToEmail(caller), "patient", "CREATE_BOOKING",
+      "Created booking for service " # serviceId.toText(), "bookingId=" # id.toText());
     state.nextBookingId += 1;
     bookings.add({
       id = id;
@@ -794,6 +1071,8 @@ actor {
           status = #accepted;
           updatedAt = now;
         });
+        addAuditEntry(principalToEmail(caller), "nurse", "ACCEPT_BOOKING",
+          "Accepted booking " # bookingId.toText(), "");
         "ok"
       };
       case null { "error: booking not found or not pending" };
@@ -809,6 +1088,8 @@ actor {
       case (?idx) {
         let existing = bookings.at(idx);
         bookings.put(idx, { existing with status = #rejected; updatedAt = now });
+        addAuditEntry(principalToEmail(caller), "nurse", "REJECT_BOOKING",
+          "Rejected booking " # bookingId.toText(), "");
         "ok"
       };
       case null { "error: booking not found or not pending" };
@@ -826,6 +1107,8 @@ actor {
       case (?idx) {
         let existing = bookings.at(idx);
         bookings.put(idx, { existing with status = #cancelled; updatedAt = now });
+        addAuditEntry(principalToEmail(caller), "patient", "CANCEL_BOOKING",
+          "Cancelled booking " # bookingId.toText(), "");
         "ok"
       };
       case null { "error: booking not found or cannot be cancelled" };
@@ -848,6 +1131,8 @@ actor {
           status = #completed;
           updatedAt = now;
         });
+        addAuditEntry(principalToEmail(caller), "nurse", "COMPLETE_BOOKING",
+          "Submitted visit report for booking " # bookingId.toText(), "");
         "ok"
       };
       case null { "error: booking not found or not accepted" };
@@ -912,6 +1197,7 @@ actor {
       case (?idx) {
         let existing = patients.at(idx);
         patients.put(idx, { existing with verificationStatus = "verified"; updatedAt = now });
+        addAuditEntry(principalToEmail(caller), "admin", "APPROVE_PATIENT", "Approved patient: " # patientPrincipal.toText(), "");
         #ok("ok")
       };
       case null { #err("patient not found") };
@@ -925,6 +1211,7 @@ actor {
       case (?idx) {
         let existing = patients.at(idx);
         patients.put(idx, { existing with verificationStatus = "rejected"; updatedAt = now });
+        addAuditEntry(principalToEmail(caller), "admin", "REJECT_PATIENT", "Rejected patient: " # patientPrincipal.toText(), "");
         #ok("ok")
       };
       case null { #err("patient not found") };
@@ -974,6 +1261,7 @@ actor {
       case (?idx) {
         let existing = nurses.at(idx);
         nurses.put(idx, { existing with status = #verified; updatedAt = now });
+        addAuditEntry(principalToEmail(caller), "admin", "APPROVE_NURSE", "Approved nurse: " # nursePrincipal.toText(), "");
         "ok"
       };
       case null { "error: nurse not found" };
@@ -987,6 +1275,7 @@ actor {
       case (?idx) {
         let existing = nurses.at(idx);
         nurses.put(idx, { existing with status = #rejected; updatedAt = now });
+        addAuditEntry(principalToEmail(caller), "admin", "REJECT_NURSE", "Rejected nurse: " # nursePrincipal.toText(), "");
         "ok"
       };
       case null { "error: nurse not found" };
@@ -1024,6 +1313,9 @@ actor {
         # " holidayPct=" # holidaySurchargePct.toText();
       changedAt = now;
     });
+    addAuditEntry(principalToEmail(caller), "admin", "UPDATE_PRICING",
+      "Updated pricing config",
+      "perKm=" # perKmRateIdr.toText() # " nightPct=" # nightSurchargePct.toText() # " holidayPct=" # holidaySurchargePct.toText());
     "ok"
   };
 
@@ -1113,6 +1405,522 @@ actor {
       };
       case null { #err("article not found") };
     };
+  };
+
+  // ============================================================
+  // WALLET API
+  // ============================================================
+
+  public query ({ caller }) func getMyBalance() : async WalletTypes.WalletBalance {
+    WalletLib.getBalance(caller, wallet_balances);
+  };
+
+  public shared ({ caller }) func deposit(
+    amount : Nat,
+    method : WalletTypes.DepositMethod,
+  ) : async { #ok : WalletTypes.WalletBalance; #err : Text } {
+    if (caller.isAnonymous()) { return #err("tidak terautentikasi") };
+    if (amount == 0) { return #err("jumlah harus lebih dari 0") };
+    let updated = WalletLib.addBalance(caller, amount, wallet_balances);
+    let txId = wallet_state.nextTxId;
+    wallet_state.nextTxId += 1;
+    WalletLib.recordTransaction({
+      id = txId;
+      userId = caller;
+      transactionType = #deposit;
+      amount = amount;
+      currency = "IDR";
+      description = "Deposit via " # WalletLib.depositMethodToText(method);
+      status = #completed;
+      createdAt = Time.now();
+    }, wallet_transactions);
+    addAuditEntry(principalToEmail(caller), roleText(caller), "DEPOSIT_WALLET",
+      "Deposit IDR " # amount.toText(), "method=" # WalletLib.depositMethodToText(method));
+    #ok(updated);
+  };
+
+  public shared ({ caller }) func requestWithdrawal(
+    amount : Nat,
+    method : WalletTypes.WithdrawalMethod,
+    accountNumber : Text,
+  ) : async { #ok : Text; #err : Text } {
+    if (caller.isAnonymous()) { return #err("tidak terautentikasi") };
+    if (amount == 0) { return #err("jumlah harus lebih dari 0") };
+    switch (WalletLib.deductBalance(caller, amount, wallet_balances)) {
+      case (#err(e)) { #err(e) };
+      case (#ok(_)) {
+        let txId = wallet_state.nextTxId;
+        wallet_state.nextTxId += 1;
+        WalletLib.recordTransaction({
+          id = txId;
+          userId = caller;
+          transactionType = #withdrawal;
+          amount = amount;
+          currency = "IDR";
+          description = "Penarikan dana ke " # WalletLib.withdrawalMethodToText(method) # " (" # accountNumber # ")";
+          status = #pending;
+          createdAt = Time.now();
+        }, wallet_transactions);
+        addAuditEntry(principalToEmail(caller), roleText(caller), "WITHDRAW_WALLET",
+          "Withdrawal IDR " # amount.toText(), "method=" # WalletLib.withdrawalMethodToText(method));
+        #ok("permintaan penarikan dana berhasil diproses");
+      };
+    };
+  };
+
+  public shared ({ caller }) func transferBalance(
+    toUserId : Principal,
+    amount : Nat,
+  ) : async { #ok : Text; #err : Text } {
+    if (caller.isAnonymous()) { return #err("tidak terautentikasi") };
+    if (amount == 0) { return #err("jumlah harus lebih dari 0") };
+    if (Principal.equal(caller, toUserId)) { return #err("tidak bisa transfer ke diri sendiri") };
+    switch (WalletLib.transfer(caller, toUserId, amount, wallet_balances)) {
+      case (#err(e)) { #err(e) };
+      case (#ok(msg)) {
+        let now = Time.now();
+        let txOutId = wallet_state.nextTxId;
+        wallet_state.nextTxId += 1;
+        WalletLib.recordTransaction({
+          id = txOutId;
+          userId = caller;
+          transactionType = #transfer_out;
+          amount = amount;
+          currency = "IDR";
+          description = "Transfer ke " # toUserId.toText();
+          status = #completed;
+          createdAt = now;
+        }, wallet_transactions);
+        let txInId = wallet_state.nextTxId;
+        wallet_state.nextTxId += 1;
+        WalletLib.recordTransaction({
+          id = txInId;
+          userId = toUserId;
+          transactionType = #transfer_in;
+          amount = amount;
+          currency = "IDR";
+          description = "Transfer dari " # caller.toText();
+          status = #completed;
+          createdAt = now;
+        }, wallet_transactions);
+        addAuditEntry(principalToEmail(caller), roleText(caller), "TRANSFER_WALLET",
+          "Transfer IDR " # amount.toText() # " to " # toUserId.toText(), "");
+        #ok(msg);
+      };
+    };
+  };
+
+  public query ({ caller }) func getMyTransactionHistory() : async [WalletTypes.WalletTransaction] {
+    WalletLib.getTransactionHistory(caller, wallet_transactions);
+  };
+
+  public query ({ caller }) func adminGetAllWalletStats() : async {
+    totalVolume : Nat;
+    pendingWithdrawals : Nat;
+    totalUsers : Nat;
+  } {
+    if (not isAdmin(caller)) {
+      return { totalVolume = 0; pendingWithdrawals = 0; totalUsers = 0 };
+    };
+    let allTxs = wallet_transactions.toArray();
+    var totalVolume = 0;
+    var pendingWithdrawals = 0;
+    for (tx in allTxs.values()) {
+      if (tx.transactionType == #deposit) { totalVolume += tx.amount };
+      if (tx.transactionType == #withdrawal and tx.status == #pending) {
+        pendingWithdrawals += 1;
+      };
+    };
+    let totalUsers = wallet_balances.size();
+    { totalVolume; pendingWithdrawals; totalUsers };
+  };
+
+  // ============================================================
+  // PHARMACY
+  // ============================================================
+
+  public shared query func getPharmacies() : async [Pharmacy] {
+    pharmacies.toArray()
+  };
+
+  public shared query func getPharmacyDrugs(pharmacyId : Nat) : async [DrugStock] {
+    switch (pharmacies.find(func(p : Pharmacy) : Bool { p.id == pharmacyId })) {
+      case (?p) { p.drugs };
+      case null { [] };
+    };
+  };
+
+  public shared ({ caller }) func adminAddPharmacy(
+    name : Text,
+    address : Text,
+    lat : Float,
+    lon : Float,
+    openTime : Text,
+    closeTime : Text,
+    phone : Text,
+  ) : async Result<Nat, Text> {
+    if (not isAdmin(caller)) { return #err("not admin") };
+    let id = pharmacies.size() + 1;
+    pharmacies.add({
+      id = id;
+      name = name;
+      address = address;
+      phone = phone;
+      lat = lat;
+      lon = lon;
+      openTime = openTime;
+      closeTime = closeTime;
+      drugs = [];
+    });
+    addAuditEntry(principalToEmail(caller), "admin", "ADD_PHARMACY",
+      "Added pharmacy: " # name, "id=" # id.toText());
+    #ok(id)
+  };
+
+  public shared ({ caller }) func adminUpdatePharmacyStock(
+    pharmacyId : Nat,
+    items : [DrugStock],
+  ) : async Result<Text, Text> {
+    if (not isAdmin(caller)) { return #err("not admin") };
+    switch (pharmacies.findIndex(func(p : Pharmacy) : Bool { p.id == pharmacyId })) {
+      case (?idx) {
+        let existing = pharmacies.at(idx);
+        pharmacies.put(idx, { existing with drugs = items });
+        addAuditEntry(principalToEmail(caller), "admin", "UPDATE_PHARMACY_STOCK",
+          "Updated stock for pharmacy " # pharmacyId.toText(), "items=" # items.size().toText());
+        #ok("ok")
+      };
+      case null { #err("pharmacy not found") };
+    };
+  };
+
+  public shared query func getPharmacyStock(pharmacyId : Nat) : async ?[DrugStock] {
+    switch (pharmacies.find(func(p : Pharmacy) : Bool { p.id == pharmacyId })) {
+      case (?p) { ?p.drugs };
+      case null { null };
+    };
+  };
+
+  public shared ({ caller }) func seedPharmacies() : async Text {
+    if (not isAdmin(caller)) { return "error: not admin" };
+    if (state.pharmacySeedDone) { return "already seeded" };
+    state.pharmacySeedDone := true;
+    let defaultDrugs : [DrugStock] = [
+      { drugName = "Paracetamol 500mg"; category = "Analgesik"; priceIdr = 5_000; available = true; quantity = 200 },
+      { drugName = "Amoxicillin 500mg"; category = "Antibiotik"; priceIdr = 15_000; available = true; quantity = 100 },
+      { drugName = "Omeprazole 20mg"; category = "Lambung"; priceIdr = 12_000; available = true; quantity = 80 },
+      { drugName = "Metformin 500mg"; category = "Diabetes"; priceIdr = 8_000; available = true; quantity = 150 },
+      { drugName = "Amlodipine 5mg"; category = "Kardiovaskular"; priceIdr = 10_000; available = true; quantity = 120 },
+      { drugName = "Cetirizine 10mg"; category = "Antihistamin"; priceIdr = 6_000; available = true; quantity = 90 },
+      { drugName = "Vitamin C 500mg"; category = "Vitamin"; priceIdr = 4_000; available = true; quantity = 300 },
+      { drugName = "ORS Rehidrasi Oral"; category = "Cairan"; priceIdr = 3_000; available = true; quantity = 250 },
+    ];
+    let seeds : [(Text, Text, Text, Float, Float, Text, Text)] = [
+      ("Apotek Kimia Farma - Sudirman", "Jl. Jend. Sudirman No. 12, Jakarta Pusat", "021-5701234", -6.2088, 106.8456, "07:00", "22:00"),
+      ("Apotek K24 - Menteng", "Jl. Cikini Raya No. 58, Menteng, Jakarta Pusat", "021-3144567", -6.1951, 106.8380, "00:00", "24:00"),
+      ("Apotek Guardian - Thamrin", "Jl. MH Thamrin No. 28, Jakarta Pusat", "021-3902345", -6.1933, 106.8237, "08:00", "21:00"),
+      ("Apotek Kimia Farma - Fatmawati", "Jl. RS Fatmawati No. 45, Cilandak, Jakarta Selatan", "021-7654321", -6.2894, 106.7993, "07:00", "22:00"),
+      ("Apotek Alfacare - Kebayoran", "Jl. Melawai Raya No. 18, Kebayoran Baru, Jakarta Selatan", "021-7234567", -6.2441, 106.8023, "08:00", "20:00"),
+      ("Apotek Kimia Farma - Rawamangun", "Jl. Pemuda No. 66, Rawamangun, Jakarta Timur", "021-4756789", -6.1971, 106.8800, "07:00", "22:00"),
+      ("Apotek Medicastore - Kelapa Gading", "Jl. Raya Kelapa Nias No. 9, Kelapa Gading, Jakarta Utara", "021-4530987", -6.1578, 106.9053, "08:00", "21:00"),
+      ("Apotek K24 - Grogol", "Jl. Prof. Dr. Latumeten No. 5, Grogol, Jakarta Barat", "021-5609876", -6.1674, 106.7905, "00:00", "24:00"),
+      ("Apotek Kimia Farma - Tangerang", "Jl. Daan Mogot Km 19, Tangerang, Banten", "021-5501234", -6.1781, 106.6325, "07:00", "22:00"),
+      ("Apotek Century - Bekasi", "Jl. Ahmad Yani No. 22, Bekasi Selatan, Jawa Barat", "021-8845678", -6.2614, 107.0032, "08:00", "21:00"),
+    ];
+    var id = 1;
+    for ((name, address, phone, lat, lon, openTime, closeTime) in seeds.values()) {
+      pharmacies.add({
+        id = id;
+        name = name;
+        address = address;
+        phone = phone;
+        lat = lat;
+        lon = lon;
+        openTime = openTime;
+        closeTime = closeTime;
+        drugs = defaultDrugs;
+      });
+      id += 1;
+    };
+    "ok"
+  };
+
+  // ============================================================
+  // USER MANAGEMENT (ADMIN)
+  // ============================================================
+
+  public type UserStatus = { #active; #suspended; #deleted };
+
+  public type UserListEntry = {
+    email : Text;
+    name : Text;
+    role : Text;
+    status : Text;
+    registeredAt : Int;
+  };
+
+  // We track suspended/deleted users via verificationStatus prefix convention:
+  // patients verificationStatus is used for suspension. For nurses we use a helper map.
+  var suspendedPrincipals = List.empty<(Principal, Text)>(); // (principal, reason)
+  let deletedPrincipals   = List.empty<Principal>();
+
+  func isSuspended(p : Principal) : Bool {
+    suspendedPrincipals.find(func(e : (Principal, Text)) : Bool { Principal.equal(e.0, p) }) != null
+  };
+
+  func isDeleted(p : Principal) : Bool {
+    deletedPrincipals.find(func(e : Principal) : Bool { Principal.equal(e, p) }) != null
+  };
+
+  public shared ({ caller }) func suspendUser(targetEmail : Text, reason : Text) : async { #ok; #notFound; #unauthorized } {
+    if (not isAdmin(caller)) { return #unauthorized };
+    // Find principal by email
+    switch (patients.findIndex(func(p : PatientProfile) : Bool { p.email == ?targetEmail })) {
+      case (?idx) {
+        let existing = patients.at(idx);
+        suspendedPrincipals.add((existing.principal, reason));
+        addAuditEntry(principalToEmail(caller), "admin", "SUSPEND_USER",
+          "Suspended user: " # targetEmail, "reason=" # reason);
+        return #ok;
+      };
+      case null {};
+    };
+    switch (nurses.findIndex(func(n : NurseProfile) : Bool { n.email == ?targetEmail })) {
+      case (?idx) {
+        let existing = nurses.at(idx);
+        suspendedPrincipals.add((existing.principal, reason));
+        addAuditEntry(principalToEmail(caller), "admin", "SUSPEND_USER",
+          "Suspended user: " # targetEmail, "reason=" # reason);
+        return #ok;
+      };
+      case null {};
+    };
+    #notFound
+  };
+
+  public shared ({ caller }) func activateUser(targetEmail : Text) : async { #ok; #notFound } {
+    if (not isAdmin(caller)) { return #notFound };
+    switch (suspendedPrincipals.findIndex(func(e : (Principal, Text)) : Bool {
+      switch (patients.find(func(p : PatientProfile) : Bool {
+        Principal.equal(p.principal, e.0) and p.email == ?targetEmail
+      })) {
+        case (?_) true;
+        case null {
+          switch (nurses.find(func(n : NurseProfile) : Bool {
+            Principal.equal(n.principal, e.0) and n.email == ?targetEmail
+          })) {
+            case (?_) true;
+            case null false;
+          };
+        };
+      };
+    })) {
+      case (?idx) {
+        ignore idx;
+        suspendedPrincipals := suspendedPrincipals.filter(func(e : (Principal, Text)) : Bool {
+          switch (patients.find(func(p : PatientProfile) : Bool {
+            Principal.equal(p.principal, e.0) and p.email == ?targetEmail
+          })) {
+            case (?_) false;
+            case null {
+              switch (nurses.find(func(n : NurseProfile) : Bool {
+                Principal.equal(n.principal, e.0) and n.email == ?targetEmail
+              })) {
+                case (?_) false;
+                case null true;
+              };
+            };
+          };
+        });
+        addAuditEntry(principalToEmail(caller), "admin", "ACTIVATE_USER",
+          "Activated user: " # targetEmail, "");
+        #ok
+      };
+      case null { #notFound };
+    };
+  };
+
+  public shared ({ caller }) func deleteUser(targetEmail : Text) : async { #ok; #notFound; #unauthorized } {
+    if (not isAdmin(caller)) { return #unauthorized };
+    switch (patients.findIndex(func(p : PatientProfile) : Bool { p.email == ?targetEmail })) {
+      case (?idx) {
+        let existing = patients.at(idx);
+        deletedPrincipals.add(existing.principal);
+        // Remove role
+        let targetPrincipalP = existing.principal;
+        roles := roles.filter(func((p, _r) : (Principal, UserRole)) : Bool { not Principal.equal(p, targetPrincipalP) });
+        addAuditEntry(principalToEmail(caller), "admin", "DELETE_USER",
+          "Deleted user: " # targetEmail, "");
+        return #ok;
+      };
+      case null {};
+    };
+    switch (nurses.findIndex(func(n : NurseProfile) : Bool { n.email == ?targetEmail })) {
+      case (?idx) {
+        let existing = nurses.at(idx);
+        deletedPrincipals.add(existing.principal);
+        let targetPrincipalN = existing.principal;
+        roles := roles.filter(func((p, _r) : (Principal, UserRole)) : Bool { not Principal.equal(p, targetPrincipalN) });
+        addAuditEntry(principalToEmail(caller), "admin", "DELETE_USER",
+          "Deleted user: " # targetEmail, "");
+        return #ok;
+      };
+      case null {};
+    };
+    #notFound
+  };
+
+  public shared query ({ caller }) func getUserList(
+    filterRole : ?Text,
+    filterStatus : ?Text,
+  ) : async [UserListEntry] {
+    if (not isAdmin(caller)) { return [] };
+    var result = List.empty<UserListEntry>();
+    // Add patients
+    for (p in patients.values()) {
+      let role = "patient";
+      let status = if (isDeleted(p.principal)) "deleted"
+                   else if (isSuspended(p.principal)) "suspended"
+                   else p.verificationStatus;
+      let email = switch (p.email) { case (?e) e; case null "" };
+      let matchRole = switch (filterRole) {
+        case (?r) { r == role };
+        case null { true };
+      };
+      let matchStatus = switch (filterStatus) {
+        case (?s) { s == status };
+        case null { true };
+      };
+      let shouldInclude = matchRole and matchStatus;
+      if (shouldInclude) {
+        result.add({ email = email; name = p.name; role = role; status = status; registeredAt = p.createdAt });
+      };
+    };
+    // Add nurses
+    for (n in nurses.values()) {
+      let role = "nurse";
+      let nurseStatus = switch (n.status) {
+        case (#verified) "verified";
+        case (#pending_verification) "pending_verification";
+        case (#rejected) "rejected";
+      };
+      let status = if (isDeleted(n.principal)) "deleted"
+                   else if (isSuspended(n.principal)) "suspended"
+                   else nurseStatus;
+      let email = switch (n.email) { case (?e) e; case null "" };
+      let matchRole = switch (filterRole) {
+        case (?r) { r == role };
+        case null { true };
+      };
+      let matchStatus = switch (filterStatus) {
+        case (?s) { s == status };
+        case null { true };
+      };
+      let shouldInclude = matchRole and matchStatus;
+      if (shouldInclude) {
+        result.add({ email = email; name = n.name; role = role; status = status; registeredAt = n.createdAt });
+      };
+    };
+    result.toArray()
+  };
+
+  // ============================================================
+  // FINANCIAL REPORT
+  // ============================================================
+
+  public type TransactionEntry = {
+    id : Nat;
+    userId : Principal;
+    transactionType : Text;
+    amount : Nat;
+    description : Text;
+    status : Text;
+    createdAt : Int;
+  };
+
+  public shared query ({ caller }) func getAdminFinancialReport() : async {
+    totalRevenue : Nat;
+    totalWithdrawals : Nat;
+    pendingWithdrawals : Nat;
+    transactionCount : Nat;
+    recentTransactions : [TransactionEntry];
+  } {
+    if (not isAdmin(caller)) {
+      return { totalRevenue = 0; totalWithdrawals = 0; pendingWithdrawals = 0; transactionCount = 0; recentTransactions = [] };
+    };
+    let allTxs = wallet_transactions.toArray();
+    var totalRevenue : Nat = 0;
+    var totalWithdrawals : Nat = 0;
+    var pendingWithdrawals : Nat = 0;
+    for (tx in allTxs.values()) {
+      switch (tx.transactionType) {
+        case (#deposit) { totalRevenue += tx.amount };
+        case (#withdrawal) {
+          if (tx.status == #completed) { totalWithdrawals += tx.amount };
+          if (tx.status == #pending) { pendingWithdrawals += 1 };
+        };
+        case (#service_payment) { totalRevenue += tx.amount };
+        case _ {};
+      };
+    };
+    let transactionCount = allTxs.size();
+    // Last 20 transactions
+    let start = if (transactionCount > 20) { transactionCount - 20 } else { 0 };
+    let recentTxs = Array.tabulate(transactionCount - start, func(i) {
+      let tx = allTxs[start + i];
+      let typeText = switch (tx.transactionType) {
+        case (#deposit)         "deposit";
+        case (#withdrawal)      "withdrawal";
+        case (#transfer_in)     "transfer_in";
+        case (#transfer_out)    "transfer_out";
+        case (#service_payment) "service_payment";
+        case (#service_income)  "service_income";
+      };
+      let statusText = switch (tx.status) {
+        case (#pending)   "pending";
+        case (#completed) "completed";
+        case (#failed)    "failed";
+      };
+      {
+        id = tx.id;
+        userId = tx.userId;
+        transactionType = typeText;
+        amount = tx.amount;
+        description = tx.description;
+        status = statusText;
+        createdAt = tx.createdAt;
+      }
+    });
+    { totalRevenue; totalWithdrawals; pendingWithdrawals; transactionCount; recentTransactions = recentTxs };
+  };
+
+  // ============================================================
+  // ACTIVITY LOG QUERIES
+  // ============================================================
+
+  public shared query ({ caller }) func getActivityLog(limit : Nat, offset : Nat) : async [ActivityEntry] {
+    if (not isAdmin(caller)) { return [] };
+    let all = activityLog.toArray();
+    let total = all.size();
+    if (offset >= total) { return [] };
+    let end = if (offset + limit > total) { total } else { offset + limit };
+    Array.tabulate(end - offset, func(i) { all[offset + i] })
+  };
+
+  // ============================================================
+  // PLATFORM SETTINGS
+  // ============================================================
+
+  public shared ({ caller }) func updatePlatformSettings(settings : PlatformSettings) : async Result<Text, Text> {
+    if (not isAdmin(caller)) { return #err("not admin") };
+    platformSettings := settings;
+    addAuditEntry(principalToEmail(caller), "admin", "UPDATE_PLATFORM_SETTINGS",
+      "Updated platform settings", "appName=" # settings.appName);
+    #ok("ok")
+  };
+
+  public shared query func getPlatformSettings() : async PlatformSettings {
+    platformSettings
   };
 
   // ============================================================

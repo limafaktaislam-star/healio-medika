@@ -1,5 +1,6 @@
 import { BookingStatus } from "@/backend.d";
 import { Layout } from "@/components/Layout";
+import { EWalletWidget } from "@/components/patient/EWalletWidget";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -78,6 +79,9 @@ export default function PatientDashboard() {
   return (
     <Layout>
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+        {/* E-Wallet Widget — top priority, especially on mobile */}
+        <EWalletWidget />
+
         {/* Greeting */}
         <section
           className="bg-primary rounded-3xl px-7 py-8 text-primary-foreground shadow-lg"

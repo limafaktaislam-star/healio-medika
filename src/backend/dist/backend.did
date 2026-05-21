@@ -1,3 +1,62 @@
+type WithdrawalMethod = 
+ variant {
+   bank_bca;
+   bank_bni;
+   bank_bri;
+   bank_mandiri;
+   dana;
+   ovo;
+ };
+type WalletTransaction = 
+ record {
+   amount: nat;
+   createdAt: int;
+   currency: text;
+   description: text;
+   id: nat;
+   status: TransactionStatus;
+   transactionType: TransactionType;
+   userId: principal;
+ };
+type WalletBalance = 
+ record {
+   balanceIdr: nat;
+   lastUpdated: int;
+   userId: principal;
+ };
+type UserListEntry = 
+ record {
+   email: text;
+   name: text;
+   registeredAt: int;
+   role: text;
+   status: text;
+ };
+type TransactionType = 
+ variant {
+   deposit;
+   service_income;
+   service_payment;
+   transfer_in;
+   transfer_out;
+   withdrawal;
+ };
+type TransactionStatus = 
+ variant {
+   completed;
+   failed;
+   pending;
+ };
+type TransactionEntry = 
+ record {
+   amount: nat;
+   createdAt: int;
+   description: text;
+   id: nat;
+   status: text;
+   transactionType: text;
+   userId: principal;
+ };
 type ServiceCategory = 
  variant {
    ambulance;
@@ -17,10 +76,15 @@ type Service =
    name: text;
    updatedAt: int;
  };
-type Result_1 = 
+type Result_2 = 
  variant {
    err: text;
    ok: nat;
+ };
+type Result_1 = 
+ variant {
+   err: text;
+   ok: record {role: text;};
  };
 type Result = 
  variant {
@@ -40,6 +104,25 @@ type PricingAuditEntry =
    changeDescription: text;
    changedAt: int;
    id: nat;
+ };
+type PlatformSettings = 
+ record {
+   appName: text;
+   maintenanceMode: bool;
+   supportEmail: text;
+   supportPhone: text;
+ };
+type Pharmacy = 
+ record {
+   address: text;
+   closeTime: text;
+   drugs: vec DrugStock;
+   id: nat;
+   lat: float64;
+   lon: float64;
+   name: text;
+   openTime: text;
+   phone: text;
  };
 type PatientSummary = 
  record {
@@ -119,6 +202,23 @@ type NurseProfile =
    university: opt text;
    updatedAt: int;
  };
+type DrugStock = 
+ record {
+   available: bool;
+   category: text;
+   drugName: text;
+   priceIdr: nat;
+   quantity: nat;
+ };
+type DepositMethod = 
+ variant {
+   dana;
+   ovo;
+   va_bca;
+   va_bni;
+   va_bri;
+   va_mandiri;
+ };
 type BookingStatus = 
  variant {
    accepted;
@@ -168,19 +268,43 @@ type Article =
    title: text;
    updatedAt: int;
  };
+type ActivityEntry = 
+ record {
+   actionType: text;
+   actorEmail: text;
+   actorRole: text;
+   description: text;
+   id: nat;
+   metadata: text;
+   timestamp: int;
+ };
 service : {
   acceptBooking: (bookingId: nat) -> (text);
+  activateUser: (targetEmail: text) -> (variant {
+                                          notFound;
+                                          ok;
+                                        });
+  adminAddPharmacy: (name: text, address: text, lat: float64, lon: float64,
+   openTime: text, closeTime: text, phone: text) -> (Result_2);
   adminApprovePatient: (patientPrincipal: principal) -> (Result);
   adminCreateArticle: (slug: text, title: text, metaDescription: text,
    content: text, imagePrompt: text, references: vec text, category: 
-   text) -> (Result_1);
+   text) -> (Result_2);
   adminCreateService: (name: text, description: text, category:
    ServiceCategory, baseFeeIdr: nat) -> (text);
   adminDeleteService: (id: nat) -> (text);
+  adminGetAllWalletStats: () ->
+   (record {
+      pendingWithdrawals: nat;
+      totalUsers: nat;
+      totalVolume: nat;
+    }) query;
   adminRejectPatient: (patientPrincipal: principal) -> (Result);
   adminUpdateArticle: (id: nat, title: text, metaDescription: text, content:
    text, imagePrompt: text, references: vec text, category: text) -> (
    Result);
+  adminUpdatePharmacyStock: (pharmacyId: nat, items: vec DrugStock) ->
+   (Result);
   adminUpdatePricing: (perKmRateIdr: nat, nightSurchargePct: nat,
    holidaySurchargePct: nat) -> (text);
   adminUpdateService: (id: nat, name: text, description: text, baseFeeIdr:
@@ -189,26 +313,53 @@ service : {
   cancelBooking: (bookingId: nat) -> (text);
   createBooking: (serviceId: nat, scheduledDate: text, scheduledTime: 
    text, latitude: float64, longitude: float64, notes: text) -> (text);
+  deleteUser: (targetEmail: text) -> (variant {
+                                        notFound;
+                                        ok;
+                                        unauthorized;
+                                      });
+  deposit: (amount: nat, method: DepositMethod) ->
+   (variant {
+      err: text;
+      ok: WalletBalance;
+    });
   estimateCost: (serviceId: nat, distanceKm: float64, nightTime: bool,
    holiday: bool) -> (opt nat) query;
+  getActivityLog: (limit: nat, offset: nat) -> (vec ActivityEntry) query;
+  getAdminFinancialReport: () ->
+   (record {
+      pendingWithdrawals: nat;
+      recentTransactions: vec TransactionEntry;
+      totalRevenue: nat;
+      totalWithdrawals: nat;
+      transactionCount: nat;
+    }) query;
   getAllBookings: () -> (vec Booking) query;
   getAllNurses: () -> (vec NurseProfile) query;
   getAllPatients: () -> (vec PatientProfile) query;
   getArticleBySlug: (slug: text) -> (opt Article) query;
   getBookingStats: () -> (opt BookingStats) query;
   getIncomingBookings: () -> (vec Booking) query;
+  getMyBalance: () -> (WalletBalance) query;
   getMyBookings: () -> (vec Booking) query;
   getMyNurseProfile: () -> (opt NurseProfile) query;
   getMyPatientProfile: () -> (opt PatientProfile) query;
   getMyRole: () -> (opt text) query;
+  getMyTransactionHistory: () -> (vec WalletTransaction) query;
   getNearbyNurses: (lat: float64, lon: float64, radiusKm: float64) ->
    (vec NurseProfile) query;
   getNurseProfile: (p: principal) -> (opt NurseProfile) query;
   getNurseSchedule: () -> (vec Booking) query;
   getPendingNurses: () -> (vec NurseProfile) query;
   getPendingPatients: () -> (vec PatientSummary) query;
+  getPharmacies: () -> (vec Pharmacy) query;
+  getPharmacyDrugs: (pharmacyId: nat) -> (vec DrugStock) query;
+  getPharmacyStock: (pharmacyId: nat) -> (opt vec DrugStock) query;
+  getPlatformSettings: () -> (PlatformSettings) query;
   getPricingAuditLog: () -> (vec PricingAuditEntry) query;
   getPricingConfig: () -> (PricingConfig) query;
+  getUserList: (filterRole: opt text, filterStatus: opt text) ->
+   (vec UserListEntry) query;
   listAllServices: () -> (vec Service) query;
   listArticles: (page: nat, pageSize: nat) ->
    (record {
@@ -216,6 +367,7 @@ service : {
       total: nat;
     }) query;
   listServices: () -> (vec Service) query;
+  loginWithEmail: (email: text, password: text) -> (Result_1);
   registerAsAdmin: () -> (text);
   registerAsNurse: (name: text, strNumber: text, strExpiry: text,
    strDocumentUrl: opt text, specialization: text, profession: text,
@@ -230,6 +382,11 @@ service : {
   registerAsPatient: () -> (text);
   rejectBooking: (bookingId: nat) -> (text);
   rejectNurse: (nursePrincipal: principal) -> (text);
+  requestWithdrawal: (amount: nat, method: WithdrawalMethod, accountNumber:
+   text) -> (variant {
+               err: text;
+               ok: text;
+             });
   saveEmailPassword: (email: text, password: text) -> (Result);
   saveNurseProfile: (name: text, strNumber: text, strExpiry: text,
    strDocumentUrl: opt text, specialization: text, profession: text,
@@ -253,7 +410,20 @@ service : {
     }) query;
   seedArticles: () -> (text);
   seedDefaultServices: () -> (text);
+  seedPharmacies: () -> (text);
   submitVisitReport: (bookingId: nat, reportText: text) -> (text);
+  suspendUser: (targetEmail: text, reason: text) ->
+   (variant {
+      notFound;
+      ok;
+      unauthorized;
+    });
+  transferBalance: (toUserId: principal, amount: nat) ->
+   (variant {
+      err: text;
+      ok: text;
+    });
   updateNurseLocation: (lat: float64, lon: float64) -> (text);
-  verifyEmailPassword: (email: text, password: text) -> (Result) query;
+  updatePlatformSettings: (settings: PlatformSettings) -> (Result);
+  verifyEmailPassword: (email: text, password: text) -> (Result);
 }

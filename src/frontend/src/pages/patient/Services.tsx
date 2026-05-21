@@ -15,6 +15,7 @@ import {
   SERVICE_CATEGORY_LABELS,
 } from "@/types";
 import type { Service } from "@/types";
+import { useNavigate } from "@tanstack/react-router";
 import {
   AlertCircle,
   CalendarDays,
@@ -782,6 +783,7 @@ function DoctorConsultationModal({
   services,
   onClose,
 }: DoctorConsultationModalProps) {
+  const navigate = useNavigate();
   const [date, setDate] = useState(getTodayDate());
   const [time, setTime] = useState("09:00");
   const [notes, setNotes] = useState("");
@@ -812,6 +814,7 @@ function DoctorConsultationModal({
       toast.success(
         "Konsultasi berhasil dijadwalkan! Menunggu konfirmasi dokter.",
       );
+      navigate({ to: "/patient/bookings" });
       onClose();
     } catch {
       toast.error("Gagal menjadwalkan konsultasi. Silakan coba lagi.");
@@ -1054,6 +1057,7 @@ function ProviderBookingModal({
   service,
   onClose,
 }: ProviderBookingModalProps) {
+  const navigate = useNavigate();
   const [date, setDate] = useState(getTodayDate());
   const [time, setTime] = useState("09:00");
   const [notes, setNotes] = useState("");
@@ -1075,6 +1079,7 @@ function ProviderBookingModal({
         notes: `[Provider: ${provider.name}] ${notes}`,
       });
       toast.success("Pesanan berhasil dibuat! Menunggu konfirmasi.");
+      navigate({ to: "/patient/bookings" });
       onClose();
     } catch {
       toast.error("Gagal membuat pesanan. Silakan coba lagi.");
@@ -1338,7 +1343,13 @@ export default function PatientServices() {
   );
   const [bookingService, setBookingService] = useState<Service | null>(null);
 
+  const navigate = useNavigate();
+
   const handleCategoryClick = (cat: FrontendCategory) => {
+    if (cat === "apotek") {
+      navigate({ to: "/apotek" });
+      return;
+    }
     setActiveCategory(cat);
     setSubServiceCategory(cat);
   };

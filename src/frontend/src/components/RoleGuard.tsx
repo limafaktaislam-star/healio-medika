@@ -15,17 +15,23 @@ export function RoleGuard({ allowedRole, children }: RoleGuardProps) {
 
   useEffect(() => {
     if (isLoading) return;
-    if (!isLoggedIn) {
+    // Check localStorage as fallback
+    const localRole =
+      typeof window !== "undefined" ? localStorage.getItem("userRole") : null;
+    const effectiveLoggedIn = isLoggedIn || !!localRole;
+    const effectiveRole = role || localRole;
+
+    if (!effectiveLoggedIn) {
       navigate({ to: "/login" });
       return;
     }
-    if (role && role !== allowedRole) {
+    if (effectiveRole && effectiveRole !== allowedRole) {
       // Redirect to correct dashboard
-      if (role === "patient") navigate({ to: "/patient/dashboard" });
-      else if (role === "nurse") navigate({ to: "/nurse/dashboard" });
-      else if (role === "admin") navigate({ to: "/admin/dashboard" });
+      if (effectiveRole === "patient") navigate({ to: "/patient/dashboard" });
+      else if (effectiveRole === "nurse") navigate({ to: "/nurse/dashboard" });
+      else if (effectiveRole === "admin") navigate({ to: "/admin/dashboard" });
     }
-    if (!role && isLoggedIn) {
+    if (!effectiveRole && effectiveLoggedIn) {
       // Logged in but no role yet — go to login for role selection
       navigate({ to: "/login" });
     }
@@ -39,7 +45,12 @@ export function RoleGuard({ allowedRole, children }: RoleGuardProps) {
     );
   }
 
-  if (!isLoggedIn || role !== allowedRole) return null;
+  const localRole =
+    typeof window !== "undefined" ? localStorage.getItem("userRole") : null;
+  const effectiveRole = role || localRole;
+
+  if (!isLoggedIn && !localRole) return null;
+  if (effectiveRole !== allowedRole) return null;
 
   return <>{children}</>;
 }

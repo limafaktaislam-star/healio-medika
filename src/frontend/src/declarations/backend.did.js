@@ -8,14 +8,52 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
+export const Result_2 = IDL.Variant({ 'ok' : IDL.Nat, 'err' : IDL.Text });
 export const Result = IDL.Variant({ 'ok' : IDL.Text, 'err' : IDL.Text });
-export const Result_1 = IDL.Variant({ 'ok' : IDL.Nat, 'err' : IDL.Text });
 export const ServiceCategory = IDL.Variant({
   'postopcare' : IDL.Null,
   'ambulance' : IDL.Null,
   'elderlycare' : IDL.Null,
   'woundcare' : IDL.Null,
   'physiotherapy' : IDL.Null,
+});
+export const DrugStock = IDL.Record({
+  'drugName' : IDL.Text,
+  'available' : IDL.Bool,
+  'quantity' : IDL.Nat,
+  'category' : IDL.Text,
+  'priceIdr' : IDL.Nat,
+});
+export const DepositMethod = IDL.Variant({
+  'ovo' : IDL.Null,
+  'dana' : IDL.Null,
+  'va_bca' : IDL.Null,
+  'va_bni' : IDL.Null,
+  'va_bri' : IDL.Null,
+  'va_mandiri' : IDL.Null,
+});
+export const WalletBalance = IDL.Record({
+  'userId' : IDL.Principal,
+  'lastUpdated' : IDL.Int,
+  'balanceIdr' : IDL.Nat,
+});
+export const ActivityEntry = IDL.Record({
+  'id' : IDL.Nat,
+  'actorRole' : IDL.Text,
+  'metadata' : IDL.Text,
+  'actionType' : IDL.Text,
+  'description' : IDL.Text,
+  'timestamp' : IDL.Int,
+  'actorEmail' : IDL.Text,
+});
+export const TransactionEntry = IDL.Record({
+  'id' : IDL.Nat,
+  'status' : IDL.Text,
+  'transactionType' : IDL.Text,
+  'userId' : IDL.Principal,
+  'createdAt' : IDL.Int,
+  'description' : IDL.Text,
+  'amount' : IDL.Nat,
 });
 export const BookingStatus = IDL.Variant({
   'cancelled' : IDL.Null,
@@ -127,6 +165,29 @@ export const BookingStats = IDL.Record({
   'rejected' : IDL.Nat,
   'accepted' : IDL.Nat,
 });
+export const TransactionStatus = IDL.Variant({
+  'pending' : IDL.Null,
+  'completed' : IDL.Null,
+  'failed' : IDL.Null,
+});
+export const TransactionType = IDL.Variant({
+  'transfer_out' : IDL.Null,
+  'deposit' : IDL.Null,
+  'transfer_in' : IDL.Null,
+  'withdrawal' : IDL.Null,
+  'service_income' : IDL.Null,
+  'service_payment' : IDL.Null,
+});
+export const WalletTransaction = IDL.Record({
+  'id' : IDL.Nat,
+  'status' : TransactionStatus,
+  'transactionType' : TransactionType,
+  'userId' : IDL.Principal,
+  'createdAt' : IDL.Int,
+  'description' : IDL.Text,
+  'currency' : IDL.Text,
+  'amount' : IDL.Nat,
+});
 export const PatientSummary = IDL.Record({
   'nik' : IDL.Text,
   'principal' : IDL.Principal,
@@ -135,6 +196,23 @@ export const PatientSummary = IDL.Record({
   'selfieUrl' : IDL.Text,
   'ktpPhotoUrl' : IDL.Text,
   'verificationStatus' : IDL.Text,
+});
+export const Pharmacy = IDL.Record({
+  'id' : IDL.Nat,
+  'lat' : IDL.Float64,
+  'lon' : IDL.Float64,
+  'closeTime' : IDL.Text,
+  'name' : IDL.Text,
+  'address' : IDL.Text,
+  'phone' : IDL.Text,
+  'drugs' : IDL.Vec(DrugStock),
+  'openTime' : IDL.Text,
+});
+export const PlatformSettings = IDL.Record({
+  'appName' : IDL.Text,
+  'maintenanceMode' : IDL.Bool,
+  'supportEmail' : IDL.Text,
+  'supportPhone' : IDL.Text,
 });
 export const PricingAuditEntry = IDL.Record({
   'id' : IDL.Nat,
@@ -148,6 +226,13 @@ export const PricingConfig = IDL.Record({
   'updatedAt' : IDL.Int,
   'perKmRateIdr' : IDL.Nat,
 });
+export const UserListEntry = IDL.Record({
+  'status' : IDL.Text,
+  'name' : IDL.Text,
+  'role' : IDL.Text,
+  'email' : IDL.Text,
+  'registeredAt' : IDL.Int,
+});
 export const Service = IDL.Record({
   'id' : IDL.Nat,
   'baseFeeIdr' : IDL.Nat,
@@ -158,9 +243,39 @@ export const Service = IDL.Record({
   'updatedAt' : IDL.Int,
   'category' : ServiceCategory,
 });
+export const Result_1 = IDL.Variant({
+  'ok' : IDL.Record({ 'role' : IDL.Text }),
+  'err' : IDL.Text,
+});
+export const WithdrawalMethod = IDL.Variant({
+  'ovo' : IDL.Null,
+  'bank_mandiri' : IDL.Null,
+  'dana' : IDL.Null,
+  'bank_bca' : IDL.Null,
+  'bank_bni' : IDL.Null,
+  'bank_bri' : IDL.Null,
+});
 
 export const idlService = IDL.Service({
   'acceptBooking' : IDL.Func([IDL.Nat], [IDL.Text], []),
+  'activateUser' : IDL.Func(
+      [IDL.Text],
+      [IDL.Variant({ 'ok' : IDL.Null, 'notFound' : IDL.Null })],
+      [],
+    ),
+  'adminAddPharmacy' : IDL.Func(
+      [
+        IDL.Text,
+        IDL.Text,
+        IDL.Float64,
+        IDL.Float64,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+      ],
+      [Result_2],
+      [],
+    ),
   'adminApprovePatient' : IDL.Func([IDL.Principal], [Result], []),
   'adminCreateArticle' : IDL.Func(
       [
@@ -172,7 +287,7 @@ export const idlService = IDL.Service({
         IDL.Vec(IDL.Text),
         IDL.Text,
       ],
-      [Result_1],
+      [Result_2],
       [],
     ),
   'adminCreateService' : IDL.Func(
@@ -181,6 +296,17 @@ export const idlService = IDL.Service({
       [],
     ),
   'adminDeleteService' : IDL.Func([IDL.Nat], [IDL.Text], []),
+  'adminGetAllWalletStats' : IDL.Func(
+      [],
+      [
+        IDL.Record({
+          'totalVolume' : IDL.Nat,
+          'pendingWithdrawals' : IDL.Nat,
+          'totalUsers' : IDL.Nat,
+        }),
+      ],
+      ['query'],
+    ),
   'adminRejectPatient' : IDL.Func([IDL.Principal], [Result], []),
   'adminUpdateArticle' : IDL.Func(
       [
@@ -192,6 +318,11 @@ export const idlService = IDL.Service({
         IDL.Vec(IDL.Text),
         IDL.Text,
       ],
+      [Result],
+      [],
+    ),
+  'adminUpdatePharmacyStock' : IDL.Func(
+      [IDL.Nat, IDL.Vec(DrugStock)],
       [Result],
       [],
     ),
@@ -208,9 +339,43 @@ export const idlService = IDL.Service({
       [IDL.Text],
       [],
     ),
+  'deleteUser' : IDL.Func(
+      [IDL.Text],
+      [
+        IDL.Variant({
+          'ok' : IDL.Null,
+          'notFound' : IDL.Null,
+          'unauthorized' : IDL.Null,
+        }),
+      ],
+      [],
+    ),
+  'deposit' : IDL.Func(
+      [IDL.Nat, DepositMethod],
+      [IDL.Variant({ 'ok' : WalletBalance, 'err' : IDL.Text })],
+      [],
+    ),
   'estimateCost' : IDL.Func(
       [IDL.Nat, IDL.Float64, IDL.Bool, IDL.Bool],
       [IDL.Opt(IDL.Nat)],
+      ['query'],
+    ),
+  'getActivityLog' : IDL.Func(
+      [IDL.Nat, IDL.Nat],
+      [IDL.Vec(ActivityEntry)],
+      ['query'],
+    ),
+  'getAdminFinancialReport' : IDL.Func(
+      [],
+      [
+        IDL.Record({
+          'pendingWithdrawals' : IDL.Nat,
+          'recentTransactions' : IDL.Vec(TransactionEntry),
+          'totalWithdrawals' : IDL.Nat,
+          'totalRevenue' : IDL.Nat,
+          'transactionCount' : IDL.Nat,
+        }),
+      ],
       ['query'],
     ),
   'getAllBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
@@ -219,10 +384,16 @@ export const idlService = IDL.Service({
   'getArticleBySlug' : IDL.Func([IDL.Text], [IDL.Opt(Article)], ['query']),
   'getBookingStats' : IDL.Func([], [IDL.Opt(BookingStats)], ['query']),
   'getIncomingBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
+  'getMyBalance' : IDL.Func([], [WalletBalance], ['query']),
   'getMyBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
   'getMyNurseProfile' : IDL.Func([], [IDL.Opt(NurseProfile)], ['query']),
   'getMyPatientProfile' : IDL.Func([], [IDL.Opt(PatientProfile)], ['query']),
   'getMyRole' : IDL.Func([], [IDL.Opt(IDL.Text)], ['query']),
+  'getMyTransactionHistory' : IDL.Func(
+      [],
+      [IDL.Vec(WalletTransaction)],
+      ['query'],
+    ),
   'getNearbyNurses' : IDL.Func(
       [IDL.Float64, IDL.Float64, IDL.Float64],
       [IDL.Vec(NurseProfile)],
@@ -236,8 +407,21 @@ export const idlService = IDL.Service({
   'getNurseSchedule' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
   'getPendingNurses' : IDL.Func([], [IDL.Vec(NurseProfile)], ['query']),
   'getPendingPatients' : IDL.Func([], [IDL.Vec(PatientSummary)], ['query']),
+  'getPharmacies' : IDL.Func([], [IDL.Vec(Pharmacy)], ['query']),
+  'getPharmacyDrugs' : IDL.Func([IDL.Nat], [IDL.Vec(DrugStock)], ['query']),
+  'getPharmacyStock' : IDL.Func(
+      [IDL.Nat],
+      [IDL.Opt(IDL.Vec(DrugStock))],
+      ['query'],
+    ),
+  'getPlatformSettings' : IDL.Func([], [PlatformSettings], ['query']),
   'getPricingAuditLog' : IDL.Func([], [IDL.Vec(PricingAuditEntry)], ['query']),
   'getPricingConfig' : IDL.Func([], [PricingConfig], ['query']),
+  'getUserList' : IDL.Func(
+      [IDL.Opt(IDL.Text), IDL.Opt(IDL.Text)],
+      [IDL.Vec(UserListEntry)],
+      ['query'],
+    ),
   'listAllServices' : IDL.Func([], [IDL.Vec(Service)], ['query']),
   'listArticles' : IDL.Func(
       [IDL.Nat, IDL.Nat],
@@ -245,6 +429,7 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'listServices' : IDL.Func([], [IDL.Vec(Service)], ['query']),
+  'loginWithEmail' : IDL.Func([IDL.Text, IDL.Text], [Result_1], []),
   'registerAsAdmin' : IDL.Func([], [IDL.Text], []),
   'registerAsNurse' : IDL.Func(
       [
@@ -278,6 +463,11 @@ export const idlService = IDL.Service({
   'registerAsPatient' : IDL.Func([], [IDL.Text], []),
   'rejectBooking' : IDL.Func([IDL.Nat], [IDL.Text], []),
   'rejectNurse' : IDL.Func([IDL.Principal], [IDL.Text], []),
+  'requestWithdrawal' : IDL.Func(
+      [IDL.Nat, WithdrawalMethod, IDL.Text],
+      [IDL.Variant({ 'ok' : IDL.Text, 'err' : IDL.Text })],
+      [],
+    ),
   'saveEmailPassword' : IDL.Func([IDL.Text, IDL.Text], [Result], []),
   'saveNurseProfile' : IDL.Func(
       [
@@ -336,22 +526,78 @@ export const idlService = IDL.Service({
     ),
   'seedArticles' : IDL.Func([], [IDL.Text], []),
   'seedDefaultServices' : IDL.Func([], [IDL.Text], []),
+  'seedPharmacies' : IDL.Func([], [IDL.Text], []),
   'submitVisitReport' : IDL.Func([IDL.Nat, IDL.Text], [IDL.Text], []),
+  'suspendUser' : IDL.Func(
+      [IDL.Text, IDL.Text],
+      [
+        IDL.Variant({
+          'ok' : IDL.Null,
+          'notFound' : IDL.Null,
+          'unauthorized' : IDL.Null,
+        }),
+      ],
+      [],
+    ),
+  'transferBalance' : IDL.Func(
+      [IDL.Principal, IDL.Nat],
+      [IDL.Variant({ 'ok' : IDL.Text, 'err' : IDL.Text })],
+      [],
+    ),
   'updateNurseLocation' : IDL.Func([IDL.Float64, IDL.Float64], [IDL.Text], []),
-  'verifyEmailPassword' : IDL.Func([IDL.Text, IDL.Text], [Result], ['query']),
+  'updatePlatformSettings' : IDL.Func([PlatformSettings], [Result], []),
+  'verifyEmailPassword' : IDL.Func([IDL.Text, IDL.Text], [Result], []),
 });
 
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
+  const Result_2 = IDL.Variant({ 'ok' : IDL.Nat, 'err' : IDL.Text });
   const Result = IDL.Variant({ 'ok' : IDL.Text, 'err' : IDL.Text });
-  const Result_1 = IDL.Variant({ 'ok' : IDL.Nat, 'err' : IDL.Text });
   const ServiceCategory = IDL.Variant({
     'postopcare' : IDL.Null,
     'ambulance' : IDL.Null,
     'elderlycare' : IDL.Null,
     'woundcare' : IDL.Null,
     'physiotherapy' : IDL.Null,
+  });
+  const DrugStock = IDL.Record({
+    'drugName' : IDL.Text,
+    'available' : IDL.Bool,
+    'quantity' : IDL.Nat,
+    'category' : IDL.Text,
+    'priceIdr' : IDL.Nat,
+  });
+  const DepositMethod = IDL.Variant({
+    'ovo' : IDL.Null,
+    'dana' : IDL.Null,
+    'va_bca' : IDL.Null,
+    'va_bni' : IDL.Null,
+    'va_bri' : IDL.Null,
+    'va_mandiri' : IDL.Null,
+  });
+  const WalletBalance = IDL.Record({
+    'userId' : IDL.Principal,
+    'lastUpdated' : IDL.Int,
+    'balanceIdr' : IDL.Nat,
+  });
+  const ActivityEntry = IDL.Record({
+    'id' : IDL.Nat,
+    'actorRole' : IDL.Text,
+    'metadata' : IDL.Text,
+    'actionType' : IDL.Text,
+    'description' : IDL.Text,
+    'timestamp' : IDL.Int,
+    'actorEmail' : IDL.Text,
+  });
+  const TransactionEntry = IDL.Record({
+    'id' : IDL.Nat,
+    'status' : IDL.Text,
+    'transactionType' : IDL.Text,
+    'userId' : IDL.Principal,
+    'createdAt' : IDL.Int,
+    'description' : IDL.Text,
+    'amount' : IDL.Nat,
   });
   const BookingStatus = IDL.Variant({
     'cancelled' : IDL.Null,
@@ -463,6 +709,29 @@ export const idlFactory = ({ IDL }) => {
     'rejected' : IDL.Nat,
     'accepted' : IDL.Nat,
   });
+  const TransactionStatus = IDL.Variant({
+    'pending' : IDL.Null,
+    'completed' : IDL.Null,
+    'failed' : IDL.Null,
+  });
+  const TransactionType = IDL.Variant({
+    'transfer_out' : IDL.Null,
+    'deposit' : IDL.Null,
+    'transfer_in' : IDL.Null,
+    'withdrawal' : IDL.Null,
+    'service_income' : IDL.Null,
+    'service_payment' : IDL.Null,
+  });
+  const WalletTransaction = IDL.Record({
+    'id' : IDL.Nat,
+    'status' : TransactionStatus,
+    'transactionType' : TransactionType,
+    'userId' : IDL.Principal,
+    'createdAt' : IDL.Int,
+    'description' : IDL.Text,
+    'currency' : IDL.Text,
+    'amount' : IDL.Nat,
+  });
   const PatientSummary = IDL.Record({
     'nik' : IDL.Text,
     'principal' : IDL.Principal,
@@ -471,6 +740,23 @@ export const idlFactory = ({ IDL }) => {
     'selfieUrl' : IDL.Text,
     'ktpPhotoUrl' : IDL.Text,
     'verificationStatus' : IDL.Text,
+  });
+  const Pharmacy = IDL.Record({
+    'id' : IDL.Nat,
+    'lat' : IDL.Float64,
+    'lon' : IDL.Float64,
+    'closeTime' : IDL.Text,
+    'name' : IDL.Text,
+    'address' : IDL.Text,
+    'phone' : IDL.Text,
+    'drugs' : IDL.Vec(DrugStock),
+    'openTime' : IDL.Text,
+  });
+  const PlatformSettings = IDL.Record({
+    'appName' : IDL.Text,
+    'maintenanceMode' : IDL.Bool,
+    'supportEmail' : IDL.Text,
+    'supportPhone' : IDL.Text,
   });
   const PricingAuditEntry = IDL.Record({
     'id' : IDL.Nat,
@@ -484,6 +770,13 @@ export const idlFactory = ({ IDL }) => {
     'updatedAt' : IDL.Int,
     'perKmRateIdr' : IDL.Nat,
   });
+  const UserListEntry = IDL.Record({
+    'status' : IDL.Text,
+    'name' : IDL.Text,
+    'role' : IDL.Text,
+    'email' : IDL.Text,
+    'registeredAt' : IDL.Int,
+  });
   const Service = IDL.Record({
     'id' : IDL.Nat,
     'baseFeeIdr' : IDL.Nat,
@@ -494,9 +787,39 @@ export const idlFactory = ({ IDL }) => {
     'updatedAt' : IDL.Int,
     'category' : ServiceCategory,
   });
+  const Result_1 = IDL.Variant({
+    'ok' : IDL.Record({ 'role' : IDL.Text }),
+    'err' : IDL.Text,
+  });
+  const WithdrawalMethod = IDL.Variant({
+    'ovo' : IDL.Null,
+    'bank_mandiri' : IDL.Null,
+    'dana' : IDL.Null,
+    'bank_bca' : IDL.Null,
+    'bank_bni' : IDL.Null,
+    'bank_bri' : IDL.Null,
+  });
   
   return IDL.Service({
     'acceptBooking' : IDL.Func([IDL.Nat], [IDL.Text], []),
+    'activateUser' : IDL.Func(
+        [IDL.Text],
+        [IDL.Variant({ 'ok' : IDL.Null, 'notFound' : IDL.Null })],
+        [],
+      ),
+    'adminAddPharmacy' : IDL.Func(
+        [
+          IDL.Text,
+          IDL.Text,
+          IDL.Float64,
+          IDL.Float64,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+        ],
+        [Result_2],
+        [],
+      ),
     'adminApprovePatient' : IDL.Func([IDL.Principal], [Result], []),
     'adminCreateArticle' : IDL.Func(
         [
@@ -508,7 +831,7 @@ export const idlFactory = ({ IDL }) => {
           IDL.Vec(IDL.Text),
           IDL.Text,
         ],
-        [Result_1],
+        [Result_2],
         [],
       ),
     'adminCreateService' : IDL.Func(
@@ -517,6 +840,17 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'adminDeleteService' : IDL.Func([IDL.Nat], [IDL.Text], []),
+    'adminGetAllWalletStats' : IDL.Func(
+        [],
+        [
+          IDL.Record({
+            'totalVolume' : IDL.Nat,
+            'pendingWithdrawals' : IDL.Nat,
+            'totalUsers' : IDL.Nat,
+          }),
+        ],
+        ['query'],
+      ),
     'adminRejectPatient' : IDL.Func([IDL.Principal], [Result], []),
     'adminUpdateArticle' : IDL.Func(
         [
@@ -528,6 +862,11 @@ export const idlFactory = ({ IDL }) => {
           IDL.Vec(IDL.Text),
           IDL.Text,
         ],
+        [Result],
+        [],
+      ),
+    'adminUpdatePharmacyStock' : IDL.Func(
+        [IDL.Nat, IDL.Vec(DrugStock)],
         [Result],
         [],
       ),
@@ -548,9 +887,43 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Text],
         [],
       ),
+    'deleteUser' : IDL.Func(
+        [IDL.Text],
+        [
+          IDL.Variant({
+            'ok' : IDL.Null,
+            'notFound' : IDL.Null,
+            'unauthorized' : IDL.Null,
+          }),
+        ],
+        [],
+      ),
+    'deposit' : IDL.Func(
+        [IDL.Nat, DepositMethod],
+        [IDL.Variant({ 'ok' : WalletBalance, 'err' : IDL.Text })],
+        [],
+      ),
     'estimateCost' : IDL.Func(
         [IDL.Nat, IDL.Float64, IDL.Bool, IDL.Bool],
         [IDL.Opt(IDL.Nat)],
+        ['query'],
+      ),
+    'getActivityLog' : IDL.Func(
+        [IDL.Nat, IDL.Nat],
+        [IDL.Vec(ActivityEntry)],
+        ['query'],
+      ),
+    'getAdminFinancialReport' : IDL.Func(
+        [],
+        [
+          IDL.Record({
+            'pendingWithdrawals' : IDL.Nat,
+            'recentTransactions' : IDL.Vec(TransactionEntry),
+            'totalWithdrawals' : IDL.Nat,
+            'totalRevenue' : IDL.Nat,
+            'transactionCount' : IDL.Nat,
+          }),
+        ],
         ['query'],
       ),
     'getAllBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
@@ -559,10 +932,16 @@ export const idlFactory = ({ IDL }) => {
     'getArticleBySlug' : IDL.Func([IDL.Text], [IDL.Opt(Article)], ['query']),
     'getBookingStats' : IDL.Func([], [IDL.Opt(BookingStats)], ['query']),
     'getIncomingBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
+    'getMyBalance' : IDL.Func([], [WalletBalance], ['query']),
     'getMyBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
     'getMyNurseProfile' : IDL.Func([], [IDL.Opt(NurseProfile)], ['query']),
     'getMyPatientProfile' : IDL.Func([], [IDL.Opt(PatientProfile)], ['query']),
     'getMyRole' : IDL.Func([], [IDL.Opt(IDL.Text)], ['query']),
+    'getMyTransactionHistory' : IDL.Func(
+        [],
+        [IDL.Vec(WalletTransaction)],
+        ['query'],
+      ),
     'getNearbyNurses' : IDL.Func(
         [IDL.Float64, IDL.Float64, IDL.Float64],
         [IDL.Vec(NurseProfile)],
@@ -576,12 +955,25 @@ export const idlFactory = ({ IDL }) => {
     'getNurseSchedule' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
     'getPendingNurses' : IDL.Func([], [IDL.Vec(NurseProfile)], ['query']),
     'getPendingPatients' : IDL.Func([], [IDL.Vec(PatientSummary)], ['query']),
+    'getPharmacies' : IDL.Func([], [IDL.Vec(Pharmacy)], ['query']),
+    'getPharmacyDrugs' : IDL.Func([IDL.Nat], [IDL.Vec(DrugStock)], ['query']),
+    'getPharmacyStock' : IDL.Func(
+        [IDL.Nat],
+        [IDL.Opt(IDL.Vec(DrugStock))],
+        ['query'],
+      ),
+    'getPlatformSettings' : IDL.Func([], [PlatformSettings], ['query']),
     'getPricingAuditLog' : IDL.Func(
         [],
         [IDL.Vec(PricingAuditEntry)],
         ['query'],
       ),
     'getPricingConfig' : IDL.Func([], [PricingConfig], ['query']),
+    'getUserList' : IDL.Func(
+        [IDL.Opt(IDL.Text), IDL.Opt(IDL.Text)],
+        [IDL.Vec(UserListEntry)],
+        ['query'],
+      ),
     'listAllServices' : IDL.Func([], [IDL.Vec(Service)], ['query']),
     'listArticles' : IDL.Func(
         [IDL.Nat, IDL.Nat],
@@ -589,6 +981,7 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'listServices' : IDL.Func([], [IDL.Vec(Service)], ['query']),
+    'loginWithEmail' : IDL.Func([IDL.Text, IDL.Text], [Result_1], []),
     'registerAsAdmin' : IDL.Func([], [IDL.Text], []),
     'registerAsNurse' : IDL.Func(
         [
@@ -622,6 +1015,11 @@ export const idlFactory = ({ IDL }) => {
     'registerAsPatient' : IDL.Func([], [IDL.Text], []),
     'rejectBooking' : IDL.Func([IDL.Nat], [IDL.Text], []),
     'rejectNurse' : IDL.Func([IDL.Principal], [IDL.Text], []),
+    'requestWithdrawal' : IDL.Func(
+        [IDL.Nat, WithdrawalMethod, IDL.Text],
+        [IDL.Variant({ 'ok' : IDL.Text, 'err' : IDL.Text })],
+        [],
+      ),
     'saveEmailPassword' : IDL.Func([IDL.Text, IDL.Text], [Result], []),
     'saveNurseProfile' : IDL.Func(
         [
@@ -680,13 +1078,31 @@ export const idlFactory = ({ IDL }) => {
       ),
     'seedArticles' : IDL.Func([], [IDL.Text], []),
     'seedDefaultServices' : IDL.Func([], [IDL.Text], []),
+    'seedPharmacies' : IDL.Func([], [IDL.Text], []),
     'submitVisitReport' : IDL.Func([IDL.Nat, IDL.Text], [IDL.Text], []),
+    'suspendUser' : IDL.Func(
+        [IDL.Text, IDL.Text],
+        [
+          IDL.Variant({
+            'ok' : IDL.Null,
+            'notFound' : IDL.Null,
+            'unauthorized' : IDL.Null,
+          }),
+        ],
+        [],
+      ),
+    'transferBalance' : IDL.Func(
+        [IDL.Principal, IDL.Nat],
+        [IDL.Variant({ 'ok' : IDL.Text, 'err' : IDL.Text })],
+        [],
+      ),
     'updateNurseLocation' : IDL.Func(
         [IDL.Float64, IDL.Float64],
         [IDL.Text],
         [],
       ),
-    'verifyEmailPassword' : IDL.Func([IDL.Text, IDL.Text], [Result], ['query']),
+    'updatePlatformSettings' : IDL.Func([PlatformSettings], [Result], []),
+    'verifyEmailPassword' : IDL.Func([IDL.Text, IDL.Text], [Result], []),
   });
 };
 

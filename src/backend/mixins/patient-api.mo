@@ -1,9 +1,8 @@
 import Map "mo:core/Map";
-import Debug "mo:core/Debug";
+import Time "mo:core/Time";
 import Common "../types/common";
 import AuthTypes "../types/auth";
 import PatientTypes "../types/patient";
-import PatientLib "../lib/patient";
 
 mixin (
   roles : Map.Map<Common.UserId, AuthTypes.UserRole>,
@@ -18,14 +17,33 @@ mixin (
     emergency_contact_name : Text,
     emergency_contact_phone : Text,
   ) : async PatientTypes.PatientProfile {
-    Debug.todo()
+    if (roles.get(caller) != ?(#patient)) {
+      return { id = caller; name = ""; age = 0; health_conditions = [];
+               allergies = []; blood_type = "";
+               emergency_contact_name = ""; emergency_contact_phone = "";
+               created_at = 0 };
+    };
+    let now = Time.now();
+    let profile : PatientTypes.PatientProfile = {
+      id = caller;
+      name = name;
+      age = age;
+      health_conditions = health_conditions;
+      allergies = allergies;
+      blood_type = blood_type;
+      emergency_contact_name = emergency_contact_name;
+      emergency_contact_phone = emergency_contact_phone;
+      created_at = now;
+    };
+    patient_profiles.add(caller, profile);
+    profile
   };
 
   public query ({ caller }) func getMyPatientProfile() : async ?PatientTypes.PatientProfile {
-    Debug.todo()
+    patient_profiles.get(caller)
   };
 
   public query ({ caller }) func getPatientProfile(user : Common.UserId) : async ?PatientTypes.PatientProfile {
-    Debug.todo()
+    patient_profiles.get(user)
   };
 }

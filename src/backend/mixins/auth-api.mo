@@ -1,25 +1,27 @@
 import Map "mo:core/Map";
-import Debug "mo:core/Debug";
 import Common "../types/common";
 import AuthTypes "../types/auth";
-import AuthLib "../lib/auth";
 
 mixin (
   roles : Map.Map<Common.UserId, AuthTypes.UserRole>,
 ) {
   public shared ({ caller }) func registerAsPatient() : async () {
-    Debug.todo()
+    if (not caller.isAnonymous() and roles.get(caller) == null) {
+      roles.add(caller, #patient);
+    };
   };
 
   public shared ({ caller }) func registerAsNurse() : async () {
-    Debug.todo()
+    if (not caller.isAnonymous() and roles.get(caller) == null) {
+      roles.add(caller, #nurse);
+    };
   };
 
   public query ({ caller }) func getMyRole() : async ?AuthTypes.UserRole {
-    Debug.todo()
+    roles.get(caller)
   };
 
   public query ({ caller }) func getMyPrincipal() : async Common.UserId {
-    Debug.todo()
+    caller
   };
 }

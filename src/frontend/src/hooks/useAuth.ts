@@ -7,11 +7,20 @@ export function useAuth() {
   const { identity, loginStatus, login, clear } = useInternetIdentity();
   const { actor, isFetching: isActorFetching } = useActor(createActor);
 
-  const isLoggedIn = loginStatus === "success" && !!identity;
+  const iiLoggedIn = loginStatus === "success" && !!identity;
   const principal = identity?.getPrincipal();
 
+  // Check localStorage for email/password session
+  const localRole = (
+    typeof window !== "undefined" ? localStorage.getItem("userRole") : null
+  ) as UserRole | null;
+  const localEmail =
+    typeof window !== "undefined" ? localStorage.getItem("userEmail") : null;
+
+  const isLoggedIn = iiLoggedIn || !!localRole;
+
   const {
-    data: role,
+    data: iiRole,
     isLoading: isRoleLoading,
     refetch: refetchRole,
   } = useQuery<UserRole>({
@@ -23,24 +32,36 @@ export function useAuth() {
       if (r === "patient" || r === "nurse" || r === "admin") return r;
       return null;
     },
-    enabled: isLoggedIn && !!actor && !isActorFetching,
+    enabled: iiLoggedIn && !!actor && !isActorFetching,
     staleTime: 30_000,
   });
+
+  // Prefer II role; fall back to localStorage role
+  const role: UserRole = iiRole ?? localRole ?? null;
 
   // Only block public routes during active login flow, NOT on initial idle state
   const isLoading =
     loginStatus === "logging-in" ||
-    (isLoggedIn && (isActorFetching || isRoleLoading));
+    (iiLoggedIn && (isActorFetching || isRoleLoading));
+
+  const logout = () => {
+    clear();
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("userRole");
+      localStorage.removeItem("userEmail");
+    }
+  };
 
   return {
     identity,
     principal,
-    role: role ?? null,
+    role,
     isLoggedIn,
     isLoading,
     loginStatus,
     login,
-    logout: clear,
+    logout,
+    localEmail,
     refetchRole,
   };
 }

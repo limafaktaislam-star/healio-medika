@@ -7,12 +7,15 @@ import {
   CalendarDays,
   ChevronRight,
   ClipboardList,
+  FileText,
   Home,
   LogOut,
   Menu,
+  Package,
   Settings,
   Shield,
   Stethoscope,
+  TrendingUp,
   UserCheck,
   Users,
   X,
@@ -80,6 +83,36 @@ const ADMIN_NAV: NavItem[] = [
   {
     to: "/admin/pricing",
     label: "Pengaturan Harga",
+    icon: <Settings size={20} />,
+  },
+  {
+    to: "/admin/users",
+    label: "Manajemen Pengguna",
+    icon: <Users size={20} />,
+  },
+  {
+    to: "/admin/activity-log",
+    label: "Log Aktivitas",
+    icon: <Activity size={20} />,
+  },
+  {
+    to: "/admin/financial-report",
+    label: "Laporan Keuangan",
+    icon: <TrendingUp size={20} />,
+  },
+  {
+    to: "/admin/pharmacy",
+    label: "Manajemen Apotek",
+    icon: <Package size={20} />,
+  },
+  {
+    to: "/admin/articles",
+    label: "Artikel Kesehatan",
+    icon: <FileText size={20} />,
+  },
+  {
+    to: "/admin/platform-settings",
+    label: "Pengaturan Platform",
     icon: <Settings size={20} />,
   },
 ];

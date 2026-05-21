@@ -1,6 +1,6 @@
 import Map "mo:core/Map";
 import List "mo:core/List";
-import Debug "mo:core/Debug";
+import Time "mo:core/Time";
 import Common "../types/common";
 import AuthTypes "../types/auth";
 import NurseTypes "../types/nurse";
@@ -17,19 +17,40 @@ mixin (
   pricing_state : { var nextPricingId : Nat; var nextAuditId : Nat },
 ) {
   public query ({ caller }) func adminGetPendingNurses() : async [NurseTypes.NurseProfile] {
-    Debug.todo()
+    if (roles.get(caller) != ?(#admin)) { return [] };
+    var result = List.empty<NurseTypes.NurseProfile>();
+    for ((_, np) in nurse_profiles.entries()) {
+      if (np.status == #pending_verification) { result.add(np) };
+    };
+    result.toArray()
   };
 
   public shared ({ caller }) func adminApproveNurse(nurse_id : Common.UserId) : async () {
-    Debug.todo()
+    if (roles.get(caller) != ?(#admin)) { return };
+    let now = Time.now();
+    switch (nurse_profiles.get(nurse_id)) {
+      case (?np) {
+        nurse_profiles.add(nurse_id, { np with status = #verified; last_location_update = np.last_location_update });
+      };
+      case null {};
+    };
   };
 
   public shared ({ caller }) func adminRejectNurse(nurse_id : Common.UserId) : async () {
-    Debug.todo()
+    if (roles.get(caller) != ?(#admin)) { return };
+    switch (nurse_profiles.get(nurse_id)) {
+      case (?np) {
+        nurse_profiles.add(nurse_id, { np with status = #rejected });
+      };
+      case null {};
+    };
   };
 
   public query ({ caller }) func adminGetAllBookings() : async [BookingTypes.Booking] {
-    Debug.todo()
+    if (roles.get(caller) != ?(#admin)) { return [] };
+    var result = List.empty<BookingTypes.Booking>();
+    for ((_, b) in bookings.entries()) { result.add(b) };
+    result.toArray()
   };
 
   public query ({ caller }) func adminGetBookingStats() : async {
@@ -39,21 +60,42 @@ mixin (
     completed : Nat;
     cancelled : Nat;
   } {
-    Debug.todo()
+    if (roles.get(caller) != ?(#admin)) {
+      return { total = 0; pending = 0; accepted = 0; completed = 0; cancelled = 0 };
+    };
+    var total = 0; var pending = 0; var accepted = 0; var completed = 0; var cancelled = 0;
+    for ((_, b) in bookings.entries()) {
+      total += 1;
+      switch (b.status) {
+        case (#pending)   { pending += 1 };
+        case (#accepted)  { accepted += 1 };
+        case (#completed) { completed += 1 };
+        case (#cancelled) { cancelled += 1 };
+        case _ {};
+      };
+    };
+    { total; pending; accepted; completed; cancelled }
   };
 
   public query ({ caller }) func listPricingConfigs() : async [PricingTypes.PricingConfig] {
-    Debug.todo()
+    if (roles.get(caller) != ?(#admin)) { return [] };
+    PricingLib.listAllPricing(pricing_configs)
   };
 
   public shared ({ caller }) func adminUpdatePricing(
     req : PricingTypes.UpdatePricingRequest,
   ) : async PricingTypes.PricingConfig {
-    Debug.todo()
+    if (roles.get(caller) != ?(#admin)) {
+      return { id = 0; service_category = req.category; ambulans_type = req.ambulans_type;
+               base_fee = 0; per_km_transport_rate = 0; night_surcharge_percentage = 0;
+               holiday_surcharge_percentage = 0; updated_by = caller; updated_at = Time.now() };
+    };
+    PricingLib.updatePricing(pricing_configs, pricing_audit_log, pricing_state, caller, req)
   };
 
   public query ({ caller }) func getPricingAuditLog() : async [PricingTypes.PricingAuditEntry] {
-    Debug.todo()
+    if (roles.get(caller) != ?(#admin)) { return [] };
+    PricingLib.getAuditLog(pricing_audit_log)
   };
 
   public query func estimateCost(
@@ -63,6 +105,6 @@ mixin (
     booking_hour : Nat,
     is_holiday : Bool,
   ) : async PricingTypes.CostEstimate {
-    Debug.todo()
+    PricingLib.estimateCost(pricing_configs, category, ambulans_type, distance_km, booking_hour, is_holiday)
   };
 }

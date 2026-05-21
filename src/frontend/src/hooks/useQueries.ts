@@ -1,4 +1,8 @@
-import { createActor } from "@/backend";
+import {
+  type DepositMethod,
+  type WithdrawalMethod,
+  createActor,
+} from "@/backend";
 import type { ServiceCategory } from "@/types";
 import { useActor } from "@caffeineai/core-infrastructure";
 import type { Principal } from "@icp-sdk/core/principal";
@@ -574,6 +578,69 @@ export function useArticlesByCategory(category: string) {
   });
 }
 
+// ─── Wallet hooks ────────────────────────────────────────────────────────────
+
+export function useMyBalance() {
+  const { actor, isReady } = useActorReady();
+  return useQuery({
+    queryKey: ["myBalance"],
+    queryFn: async () => {
+      if (!actor) return null;
+      return actor.getMyBalance();
+    },
+    enabled: isReady,
+    refetchInterval: 15_000,
+  });
+}
+
+export function useDeposit() {
+  const { actor } = useActorReady();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (args: { amount: bigint; method: DepositMethod }) =>
+      actor!.deposit(args.amount, args.method),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["myBalance"] }),
+  });
+}
+
+export function useRequestWithdrawal() {
+  const { actor } = useActorReady();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (args: {
+      amount: bigint;
+      method: WithdrawalMethod;
+      accountNumber: string;
+    }) =>
+      actor!.requestWithdrawal(args.amount, args.method, args.accountNumber),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["myBalance"] }),
+  });
+}
+
+export function useTransferBalance() {
+  const { actor } = useActorReady();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (args: {
+      toUserId: import("@icp-sdk/core/principal").Principal;
+      amount: bigint;
+    }) => actor!.transferBalance(args.toUserId, args.amount),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["myBalance"] }),
+  });
+}
+
+export function useMyTransactionHistory() {
+  const { actor, isReady } = useActorReady();
+  return useQuery({
+    queryKey: ["myTransactionHistory"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getMyTransactionHistory();
+    },
+    enabled: isReady,
+  });
+}
+
 export function useSaveNurseProfile() {
   // placeholder - keep existing function
 
@@ -631,5 +698,28 @@ export function useSaveNurseProfile() {
         args.selfieWithKtpUrl,
       ),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["myNurseProfile"] }),
+  });
+}
+export function usePharmacies() {
+  const { actor } = useActor(createActor);
+  return useQuery({
+    queryKey: ["pharmacies"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return await actor.getPharmacies();
+    },
+    enabled: !!actor,
+  });
+}
+
+export function usePharmacyDrugs(pharmacyId: bigint | null) {
+  const { actor } = useActor(createActor);
+  return useQuery({
+    queryKey: ["pharmacyDrugs", pharmacyId?.toString()],
+    queryFn: async () => {
+      if (!actor || pharmacyId === null) return [];
+      return await actor.getPharmacyDrugs(pharmacyId);
+    },
+    enabled: !!actor && pharmacyId !== null,
   });
 }

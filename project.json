@@ -1,23 +1,29 @@
 {
-  "overview": "HEALIO MEDIKA adalah platform layanan homecare Indonesia yang menghubungkan pasien dengan perawat, bidan, dan fisioterapis profesional. Pasien bisa memesan layanan, perawat mengelola jadwal kunjungan, dan admin memverifikasi dokumen serta mengatur harga layanan.",
+  "overview": "HEALIO MEDIKA adalah platform homecare Indonesia yang menghubungkan pasien dengan tenaga medis profesional (dokter, perawat, bidan, fisioterapis) dan ambulans. Dilengkapi dengan GPS tracking, kalkulator biaya otomatis, panel admin lengkap, e-wallet, dan artikel kesehatan.",
   "features": [
-    "Portal pasien dengan pemesanan layanan dan riwayat kunjungan",
-    "Dashboard perawat dengan manajemen pesanan dan upload dokumen STR/KTP",
-    "Panel admin dengan verifikasi perawat dan pengaturan harga",
-    "Login Internet Identity dengan kontrol akses berbasis peran",
-    "Katalog layanan: Perawatan Lansia, Luka, Pasca Operasi, Fisioterapi, Ambulans",
-    "Kalender pemesanan dengan pemilihan tanggal dan jam",
-    "Geolokasi pasien dengan tampilan peta",
-    "Pengaturan harga admin: tarif dasar, tarif/km, surcharge malam"
+    "Portal Pasien dengan e-wallet, pemesanan layanan, riwayat pesanan, profil terverifikasi",
+    "Dashboard Tenaga Medis dengan manajemen order, jadwal, rekam medis, dompet pendapatan",
+    "Panel Admin lengkap: verifikasi dokumen, manajemen user (suspend/hapus/aktifkan), laporan keuangan nyata, manajemen apotek, log aktivitas semua aksi, pengaturan harga, CMS artikel, pengaturan platform",
+    "Glassmorphism pada section LAYANAN UNGGULAN KAMI dengan gradient hijau tua",
+    "Single login page dengan auto-detect role dan redirect otomatis ke dashboard yang sesuai",
+    "GPS tracking provider (perawat/ambulans) radius 20km, update 5 detik",
+    "Kalkulator biaya: Base Fee + Jarak x Tarif + Surcharge malam (18:00-06:00)",
+    "Artikel kesehatan publik dengan standar WHO 2024-2026, H2/H3, referensi ilmiah",
+    "Manajemen apotek dengan geolocation, deteksi radius, Google Maps deep-link",
+    "Akun permanen: limafaktaislam@gmail.com (Admin), endanghulaepi06@gmail.com (Medis), endanghulaepi14@gmail.com (Pasien)"
   ],
   "category": "healthcare",
   "tags": [
     "homecare",
     "healthcare",
     "indonesia",
-    "perawatan",
-    "booking",
-    "medical"
+    "medis",
+    "pasien",
+    "perawat",
+    "ambulans",
+    "gps",
+    "e-wallet",
+    "admin-dashboard"
   ],
-  "last_updated": "2026-05-14T22:08:31.174Z"
+  "last_updated": "2026-05-20T06:14:20.163Z"
 }

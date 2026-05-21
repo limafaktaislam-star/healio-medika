@@ -1,17 +1,21 @@
-import Common "common";
+import Principal "mo:core/Principal";
 
 module {
+  public type BookingStatus = {
+    #pending; #accepted; #in_progress; #completed; #cancelled; #rejected
+  };
+
   public type Booking = {
-    id : Common.BookingId;
-    patient_id : Common.UserId;
-    nurse_id : ?Common.UserId;
-    service_id : Common.ServiceId;
+    id : Nat;
+    patient_id : Principal;
+    nurse_id : ?Principal;
+    service_id : Nat;
     booking_date : Text;
     booking_time : Text;
     patient_lat : Float;
     patient_lng : Float;
     notes : Text;
-    status : Common.BookingStatus;
+    status : BookingStatus;
     distance_km : ?Float;
     base_fee : Nat;
     transport_fee : Nat;
@@ -19,12 +23,12 @@ module {
     holiday_surcharge : Nat;
     total_fee : Nat;
     visit_report : ?Text;
-    created_at : Common.Timestamp;
-    updated_at : Common.Timestamp;
+    created_at : Int;
+    updated_at : Int;
   };
 
   public type CreateBookingRequest = {
-    service_id : Common.ServiceId;
+    service_id : Nat;
     booking_date : Text;
     booking_time : Text;
     patient_lat : Float;

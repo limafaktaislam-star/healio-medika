@@ -2,11 +2,13 @@ export interface ArticleData {
   id: number;
   slug: string;
   title: string;
+  metaTitle?: string;
   metaDescription: string;
   category: string;
   content: string;
   imagePrompt: string;
   references: string[];
+  lastUpdated?: string;
 }
 
 export const CATEGORIES = [
@@ -44,6 +46,9 @@ const detailedArticles: ArticleData[] = [
     id: 1,
     slug: "serangan-jantung",
     title: "Serangan Jantung: Kenali Gejala FAST dan Tindakan Darurat",
+    metaTitle:
+      "Serangan Jantung: Kenali Gejala FAST dan Tindakan Darurat - Healio Medika",
+    lastUpdated: "18 Mei 2026",
     metaDescription:
       "Nyeri dada, keringat dingin, sesak nafas adalah tanda serangan jantung. Kenali gejala, pertolongan pertama, dan pentingnya hubungi 119 segera.",
     category: "Penyakit Jantung",
@@ -65,6 +70,9 @@ const detailedArticles: ArticleData[] = [
     id: 2,
     slug: "hipertensi",
     title: "Hipertensi: Kontrol Tekanan Darah untuk Hindari Komplikasi Fatal",
+    metaTitle:
+      "Hipertensi: Kontrol Tekanan Darah untuk Hindari Komplikasi Fatal - Healio Medika",
+    lastUpdated: "18 Mei 2026",
     metaDescription:
       "Hipertensi memengaruhi 34% orang dewasa Indonesia. Kenali target tekanan darah, obat lini pertama, dan perubahan gaya hidup yang terbukti efektif.",
     category: "Penyakit Jantung",
@@ -86,6 +94,9 @@ const detailedArticles: ArticleData[] = [
     id: 3,
     slug: "diabetes-tipe2",
     title: "Diabetes Tipe 2: Mengelola Gula Darah Seumur Hidup",
+    metaTitle:
+      "Diabetes Tipe 2: Mengelola Gula Darah Seumur Hidup - Healio Medika",
+    lastUpdated: "18 Mei 2026",
     metaDescription:
       "Indonesia memiliki 19 juta penderita diabetes. Kenali target HbA1c, metformin sebagai obat utama, diet diabetes, dan skrining komplikasi rutin.",
     category: "Diabetes & Metabolik",
@@ -107,6 +118,9 @@ const detailedArticles: ArticleData[] = [
     id: 4,
     slug: "asma",
     title: "Asma: Mengelola Penyakit Saluran Napas Kronis agar Tetap Aktif",
+    metaTitle:
+      "Asma: Mengelola Penyakit Saluran Napas Kronis agar Tetap Aktif - Healio Medika",
+    lastUpdated: "18 Mei 2026",
     metaDescription:
       "Asma memengaruhi jutaan orang Indonesia. Kenali pemicu, inhaler pengontrol ICS dan pelega SABA, rencana aksi asma, dan cara hidup aktif.",
     category: "Penyakit Pernafasan",
@@ -128,6 +142,9 @@ const detailedArticles: ArticleData[] = [
     id: 5,
     slug: "stroke",
     title: "Stroke: Kenali FAST dan Selamatkan Otak dalam Hitungan Menit",
+    metaTitle:
+      "Stroke: Kenali FAST dan Selamatkan Otak dalam Hitungan Menit - Healio Medika",
+    lastUpdated: "18 Mei 2026",
     metaDescription:
       "Setiap menit 1,9 juta neuron mati saat stroke. Kenali gejala FAST, jenis iskemik dan hemoragik, pengobatan tPA darurat, dan rehabilitasi.",
     category: "Penyakit Saraf",
@@ -149,6 +166,9 @@ const detailedArticles: ArticleData[] = [
     id: 6,
     slug: "demam-berdarah",
     title: "Demam Berdarah: Kenali Fase Kritis dan Tanda Bahaya",
+    metaTitle:
+      "Demam Berdarah: Kenali Fase Kritis dan Tanda Bahaya - Healio Medika",
+    lastUpdated: "18 Mei 2026",
     metaDescription:
       "DBD fase kritis terjadi saat demam turun. Kenali tanda syok dengue, manajemen cairan, pencegahan 3M Plus, dan kapan rawat inap diperlukan.",
     category: "Penyakit Infeksi",
@@ -170,6 +190,9 @@ const detailedArticles: ArticleData[] = [
     id: 7,
     slug: "kanker-payudara",
     title: "Kanker Payudara: SADARI Setiap Bulan Menyelamatkan Jiwa",
+    metaTitle:
+      "Kanker Payudara: SADARI Setiap Bulan Menyelamatkan Jiwa - Healio Medika",
+    lastUpdated: "18 Mei 2026",
     metaDescription:
       "Kanker payudara adalah kanker tersering wanita Indonesia. Kenali cara SADARI, mamografi skrining, faktor risiko, dan pengobatan modern.",
     category: "Kanker",
@@ -191,6 +214,9 @@ const detailedArticles: ArticleData[] = [
     id: 8,
     slug: "osteoporosis",
     title: "Osteoporosis: Cegah Tulang Rapuh dengan DEXA Scan dan Kalsium",
+    metaTitle:
+      "Osteoporosis: Cegah Tulang Rapuh dengan DEXA Scan dan Kalsium - Healio Medika",
+    lastUpdated: "18 Mei 2026",
     metaDescription:
       "Osteoporosis melemahkan tulang tanpa gejala hingga patah. Kenali DEXA scan, kalsium 1200mg, vitamin D, bisphosphonate, dan pencegahan jatuh.",
     category: "Tulang & Sendi",
@@ -212,6 +238,9 @@ const detailedArticles: ArticleData[] = [
     id: 9,
     slug: "gagal-ginjal",
     title: "Gagal Ginjal Kronik: Cegah Dialisis dengan Pengelolaan Dini",
+    metaTitle:
+      "Gagal Ginjal Kronik: Cegah Dialisis dengan Pengelolaan Dini - Healio Medika",
+    lastUpdated: "18 Mei 2026",
     metaDescription:
       "GGK adalah penurunan ginjal progresif tidak reversibel. Kenali eGFR, 5 stadium, kontrol DM dan hipertensi, diet rendah protein, dan tanda indikasi dialisis.",
     category: "Penyakit Ginjal",
@@ -233,6 +262,9 @@ const detailedArticles: ArticleData[] = [
     id: 10,
     slug: "depresi",
     title: "Depresi: Penyakit Mental Nyata yang Bisa Disembuhkan",
+    metaTitle:
+      "Depresi: Penyakit Mental Nyata yang Bisa Disembuhkan - Healio Medika",
+    lastUpdated: "18 Mei 2026",
     metaDescription:
       "264 juta orang di dunia menderita depresi. Kenali gejala PHQ-9, SSRI sebagai lini pertama, CBT efektif, dan cara mendukung orang tersayang yang depresi.",
     category: "Kesehatan Mental",
@@ -255,6 +287,9 @@ const detailedArticles: ArticleData[] = [
     slug: "pneumonia",
     title:
       "Pneumonia: Infeksi Paru yang Serius dan Cara Pencegahan dengan Vaksin",
+    metaTitle:
+      "Pneumonia: Infeksi Paru yang Serius dan Cara Pencegahan dengan Vaksin - Healio Medika",
+    lastUpdated: "18 Mei 2026",
     metaDescription:
       "Pneumonia adalah penyebab kematian tersering balita dan lansia. Kenali batuk berdahak, demam, sesak nafas, antibiotik yang tepat, dan vaksin pneumokokus.",
     category: "Penyakit Pernafasan",
@@ -276,6 +311,9 @@ const detailedArticles: ArticleData[] = [
     id: 12,
     slug: "tifus",
     title: "Tifus (Demam Tifoid): Demam Tangga yang Perlu Antibiotik Tepat",
+    metaTitle:
+      "Tifus (Demam Tifoid): Demam Tangga yang Perlu Antibiotik Tepat - Healio Medika",
+    lastUpdated: "18 Mei 2026",
     metaDescription:
       "Tifus disebabkan Salmonella typhi dari makanan tercemar. Kenali demam naik bertahap, lidah kotor, diagnosis Widal, siprofloksasin, dan vaksinasi.",
     category: "Penyakit Infeksi",
@@ -297,6 +335,9 @@ const detailedArticles: ArticleData[] = [
     id: 13,
     slug: "malaria",
     title: "Malaria: Penyakit Parasit Endemis di Indonesia Timur",
+    metaTitle:
+      "Malaria: Penyakit Parasit Endemis di Indonesia Timur - Healio Medika",
+    lastUpdated: "18 Mei 2026",
     metaDescription:
       "Malaria masih endemis di Papua dan NTT. Kenali siklus Plasmodium, demam menggigil periodik, ACT sebagai pengobatan standar, dan profilaksis wisatawan.",
     category: "Penyakit Tropis",
@@ -318,6 +359,9 @@ const detailedArticles: ArticleData[] = [
     id: 14,
     slug: "anemia",
     title: "Anemia Defisiensi Besi: Atasi Kelelahan Kronis dengan Suplemen",
+    metaTitle:
+      "Anemia Defisiensi Besi: Atasi Kelelahan Kronis dengan Suplemen - Healio Medika",
+    lastUpdated: "18 Mei 2026",
     metaDescription:
       "ADB tersering di Indonesia terutama ibu hamil. Kenali gejala pucat dan lemas, suplemen ferous sulfat, makanan kaya zat besi, dan vitamin C pembantu penyerapan.",
     category: "Kesehatan Umum",
@@ -339,6 +383,9 @@ const detailedArticles: ArticleData[] = [
     id: 15,
     slug: "covid19",
     title: "COVID-19: Panduan Gejala Terkini, Vaksinasi, dan Pemulihan",
+    metaTitle:
+      "COVID-19: Panduan Gejala Terkini, Vaksinasi, dan Pemulihan - Healio Medika",
+    lastUpdated: "18 Mei 2026",
     metaDescription:
       "COVID-19 disebabkan SARS-CoV-2. Kenali gejala Omicron, vaksinasi booster, isolasi mandiri 5 hari, dan kapan ke fasilitas kesehatan.",
     category: "Penyakit Infeksi",
@@ -361,6 +408,9 @@ const detailedArticles: ArticleData[] = [
     slug: "stunting",
     title:
       "Stunting: 1000 Hari Pertama Kehidupan adalah Kesempatan Mencegah Gagal Tumbuh",
+    metaTitle:
+      "Stunting: 1000 Hari Pertama Kehidupan adalah Kesempatan Mencegah Gagal Tumbuh - Healio Medika",
+    lastUpdated: "18 Mei 2026",
     metaDescription:
       "Stunting memengaruhi 24% balita Indonesia. Kenali gizi 1000 HPK, ASI eksklusif, MPASI bergizi, imunisasi lengkap, dan pemantauan tumbuh kembang.",
     category: "Kesehatan Ibu & Anak",
@@ -382,6 +432,9 @@ const detailedArticles: ArticleData[] = [
     id: 17,
     slug: "preeklampsia",
     title: "Preeklampsia: Waspada Hipertensi Kehamilan yang Mengancam Jiwa",
+    metaTitle:
+      "Preeklampsia: Waspada Hipertensi Kehamilan yang Mengancam Jiwa - Healio Medika",
+    lastUpdated: "18 Mei 2026",
     metaDescription:
       "Preeklampsia adalah hipertensi kehamilan serius. Kenali gejala tekanan darah tinggi setelah 20 minggu, tanda bahaya, aspirin profilaksis, dan waktu persalinan.",
     category: "Kesehatan Ibu & Anak",
@@ -403,6 +456,9 @@ const detailedArticles: ArticleData[] = [
     id: 18,
     slug: "glaukoma",
     title: "Glaukoma: Cegah Kebutaan Permanen dengan Skrining Tekanan Mata",
+    metaTitle:
+      "Glaukoma: Cegah Kebutaan Permanen dengan Skrining Tekanan Mata - Healio Medika",
+    lastUpdated: "18 Mei 2026",
     metaDescription:
       "Glaukoma merusak saraf optik tanpa gejala. Kenali jenis sudut terbuka dan tertutup, tonometri, tetes prostaglandin, dan jadwal skrining untuk semua di atas 40.",
     category: "Mata & THT",
@@ -424,6 +480,9 @@ const detailedArticles: ArticleData[] = [
     id: 19,
     slug: "hepatitis-b",
     title: "Hepatitis B: Virus Hati yang Bisa Dicegah Vaksin Tiga Dosis",
+    metaTitle:
+      "Hepatitis B: Virus Hati yang Bisa Dicegah Vaksin Tiga Dosis - Healio Medika",
+    lastUpdated: "18 Mei 2026",
     metaDescription:
       "Hepatitis B kronis bisa menyebabkan sirosis dan kanker hati. Kenali HBsAg, penularan, pengobatan entekavir, skrining ibu hamil, dan vaksinasi lengkap.",
     category: "Penyakit Infeksi",
@@ -446,6 +505,9 @@ const detailedArticles: ArticleData[] = [
     slug: "rheumatoid-arthritis",
     title:
       "Rheumatoid Arthritis: Obati Dini Agresif untuk Cegah Kerusakan Sendi",
+    metaTitle:
+      "Rheumatoid Arthritis: Obati Dini Agresif untuk Cegah Kerusakan Sendi - Healio Medika",
+    lastUpdated: "18 Mei 2026",
     metaDescription:
       "RA adalah arthritis autoimun yang merusak sendi jika terlambat diobati. Kenali kaku pagi >1 jam, RF dan anti-CCP, metotreksat anchor drug, dan biologis TNF inhibitor.",
     category: "Tulang & Sendi",
@@ -1307,6 +1369,8 @@ const generatedArticles: ArticleData[] = diseaseData.map(
     id: 21 + i,
     slug,
     title,
+    metaTitle: `${title} - Healio Medika`,
+    lastUpdated: "18 Mei 2026",
     metaDescription: `${title.split(":")[0]} adalah kondisi medis penting yang memengaruhi banyak orang Indonesia. Kenali gejala, penyebab, dan cara pengobatan yang tepat untuk kualitas hidup yang lebih baik.`,
     category,
     content: mkContent(

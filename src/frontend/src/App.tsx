@@ -1,3 +1,4 @@
+import { RoleGuard } from "@/components/RoleGuard";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import {
   RouterProvider,
@@ -31,6 +32,7 @@ const PatientRegisterPage = lazy(() => import("@/pages/PatientRegisterPage"));
 // Article pages
 const ArticlesPage = lazy(() => import("@/pages/ArticlesPage"));
 const ArticleDetailPage = lazy(() => import("@/pages/ArticleDetailPage"));
+const ApotekPage = lazy(() => import("@/pages/ApotekPage"));
 
 const AdminDashboard = lazy(() => import("@/pages/admin/Dashboard"));
 const AdminNurses = lazy(() => import("@/pages/admin/Nurses"));
@@ -38,6 +40,17 @@ const AdminBookings = lazy(() => import("@/pages/admin/Bookings"));
 const AdminServices = lazy(() => import("@/pages/admin/Services"));
 const AdminPricing = lazy(() => import("@/pages/admin/Pricing"));
 const AdminPatients = lazy(() => import("@/pages/admin/Patients"));
+const AdminActivityLog = lazy(() => import("@/pages/admin/ActivityLog"));
+const AdminFinancialReport = lazy(
+  () => import("@/pages/admin/FinancialReport"),
+);
+const AdminPharmacyManagement = lazy(
+  () => import("@/pages/admin/PharmacyManagement"),
+);
+const AdminPlatformSettings = lazy(
+  () => import("@/pages/admin/PlatformSettings"),
+);
+const AdminUsersPage = lazy(() => import("@/pages/admin/AdminUsersPage"));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-screen bg-background">
@@ -82,7 +95,9 @@ const patientDashboardRoute = createRoute({
   path: "/patient/dashboard",
   component: () => (
     <Suspense fallback={<PageLoader />}>
-      <PatientDashboard />
+      <RoleGuard allowedRole="patient">
+        <PatientDashboard />
+      </RoleGuard>
     </Suspense>
   ),
 });
@@ -92,7 +107,9 @@ const patientServicesRoute = createRoute({
   path: "/patient/services",
   component: () => (
     <Suspense fallback={<PageLoader />}>
-      <PatientServices />
+      <RoleGuard allowedRole="patient">
+        <PatientServices />
+      </RoleGuard>
     </Suspense>
   ),
 });
@@ -102,7 +119,9 @@ const patientBookingsRoute = createRoute({
   path: "/patient/bookings",
   component: () => (
     <Suspense fallback={<PageLoader />}>
-      <PatientBookings />
+      <RoleGuard allowedRole="patient">
+        <PatientBookings />
+      </RoleGuard>
     </Suspense>
   ),
 });
@@ -112,7 +131,9 @@ const patientProfileRoute = createRoute({
   path: "/patient/profile",
   component: () => (
     <Suspense fallback={<PageLoader />}>
-      <PatientProfile />
+      <RoleGuard allowedRole="patient">
+        <PatientProfile />
+      </RoleGuard>
     </Suspense>
   ),
 });
@@ -123,7 +144,9 @@ const nurseDashboardRoute = createRoute({
   path: "/nurse/dashboard",
   component: () => (
     <Suspense fallback={<PageLoader />}>
-      <NurseDashboard />
+      <RoleGuard allowedRole="nurse">
+        <NurseDashboard />
+      </RoleGuard>
     </Suspense>
   ),
 });
@@ -133,7 +156,9 @@ const nurseScheduleRoute = createRoute({
   path: "/nurse/schedule",
   component: () => (
     <Suspense fallback={<PageLoader />}>
-      <NurseSchedule />
+      <RoleGuard allowedRole="nurse">
+        <NurseSchedule />
+      </RoleGuard>
     </Suspense>
   ),
 });
@@ -143,7 +168,9 @@ const nurseBookingsRoute = createRoute({
   path: "/nurse/bookings",
   component: () => (
     <Suspense fallback={<PageLoader />}>
-      <NurseBookings />
+      <RoleGuard allowedRole="nurse">
+        <NurseBookings />
+      </RoleGuard>
     </Suspense>
   ),
 });
@@ -153,7 +180,9 @@ const nurseProfileRoute = createRoute({
   path: "/nurse/profile",
   component: () => (
     <Suspense fallback={<PageLoader />}>
-      <NurseProfile />
+      <RoleGuard allowedRole="nurse">
+        <NurseProfile />
+      </RoleGuard>
     </Suspense>
   ),
 });
@@ -194,7 +223,9 @@ const adminDashboardRoute = createRoute({
   path: "/admin/dashboard",
   component: () => (
     <Suspense fallback={<PageLoader />}>
-      <AdminDashboard />
+      <RoleGuard allowedRole="admin">
+        <AdminDashboard />
+      </RoleGuard>
     </Suspense>
   ),
 });
@@ -204,7 +235,9 @@ const adminNursesRoute = createRoute({
   path: "/admin/nurses",
   component: () => (
     <Suspense fallback={<PageLoader />}>
-      <AdminNurses />
+      <RoleGuard allowedRole="admin">
+        <AdminNurses />
+      </RoleGuard>
     </Suspense>
   ),
 });
@@ -214,7 +247,9 @@ const adminBookingsRoute = createRoute({
   path: "/admin/bookings",
   component: () => (
     <Suspense fallback={<PageLoader />}>
-      <AdminBookings />
+      <RoleGuard allowedRole="admin">
+        <AdminBookings />
+      </RoleGuard>
     </Suspense>
   ),
 });
@@ -224,7 +259,9 @@ const adminServicesRoute = createRoute({
   path: "/admin/services",
   component: () => (
     <Suspense fallback={<PageLoader />}>
-      <AdminServices />
+      <RoleGuard allowedRole="admin">
+        <AdminServices />
+      </RoleGuard>
     </Suspense>
   ),
 });
@@ -234,7 +271,9 @@ const adminPatientsRoute = createRoute({
   path: "/admin/patients",
   component: () => (
     <Suspense fallback={<PageLoader />}>
-      <AdminPatients />
+      <RoleGuard allowedRole="admin">
+        <AdminPatients />
+      </RoleGuard>
     </Suspense>
   ),
 });
@@ -244,7 +283,69 @@ const adminPricingRoute = createRoute({
   path: "/admin/pricing",
   component: () => (
     <Suspense fallback={<PageLoader />}>
-      <AdminPricing />
+      <RoleGuard allowedRole="admin">
+        <AdminPricing />
+      </RoleGuard>
+    </Suspense>
+  ),
+});
+
+const adminActivityLogRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin/activity-log",
+  component: () => (
+    <Suspense fallback={<PageLoader />}>
+      <RoleGuard allowedRole="admin">
+        <AdminActivityLog />
+      </RoleGuard>
+    </Suspense>
+  ),
+});
+
+const adminFinancialReportRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin/financial-report",
+  component: () => (
+    <Suspense fallback={<PageLoader />}>
+      <RoleGuard allowedRole="admin">
+        <AdminFinancialReport />
+      </RoleGuard>
+    </Suspense>
+  ),
+});
+
+const adminPharmacyRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin/pharmacy",
+  component: () => (
+    <Suspense fallback={<PageLoader />}>
+      <RoleGuard allowedRole="admin">
+        <AdminPharmacyManagement />
+      </RoleGuard>
+    </Suspense>
+  ),
+});
+
+const adminPlatformSettingsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin/platform-settings",
+  component: () => (
+    <Suspense fallback={<PageLoader />}>
+      <RoleGuard allowedRole="admin">
+        <AdminPlatformSettings />
+      </RoleGuard>
+    </Suspense>
+  ),
+});
+
+const adminUsersRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin/users",
+  component: () => (
+    <Suspense fallback={<PageLoader />}>
+      <RoleGuard allowedRole="admin">
+        <AdminUsersPage />
+      </RoleGuard>
     </Suspense>
   ),
 });
@@ -265,6 +366,16 @@ const articleDetailRoute = createRoute({
   component: () => (
     <Suspense fallback={<PageLoader />}>
       <ArticleDetailPage />
+    </Suspense>
+  ),
+});
+
+const apotekRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/apotek",
+  component: () => (
+    <Suspense fallback={<PageLoader />}>
+      <ApotekPage />
     </Suspense>
   ),
 });
@@ -290,8 +401,14 @@ const routeTree = rootRoute.addChildren([
   adminServicesRoute,
   adminPricingRoute,
   adminPatientsRoute,
+  adminActivityLogRoute,
+  adminFinancialReportRoute,
+  adminPharmacyRoute,
+  adminPlatformSettingsRoute,
+  adminUsersRoute,
   articlesRoute,
   articleDetailRoute,
+  apotekRoute,
 ]);
 
 const router = createRouter({ routeTree });

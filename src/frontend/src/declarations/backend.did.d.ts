@@ -10,6 +10,15 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface ActivityEntry {
+  'id' : bigint,
+  'actorRole' : string,
+  'metadata' : string,
+  'actionType' : string,
+  'description' : string,
+  'timestamp' : bigint,
+  'actorEmail' : string,
+}
 export interface Article {
   'id' : bigint,
   'metaDescription' : string,
@@ -53,6 +62,19 @@ export type BookingStatus = { 'cancelled' : null } |
   { 'completed' : null } |
   { 'rejected' : null } |
   { 'accepted' : null };
+export type DepositMethod = { 'ovo' : null } |
+  { 'dana' : null } |
+  { 'va_bca' : null } |
+  { 'va_bni' : null } |
+  { 'va_bri' : null } |
+  { 'va_mandiri' : null };
+export interface DrugStock {
+  'drugName' : string,
+  'available' : boolean,
+  'quantity' : bigint,
+  'category' : string,
+  'priceIdr' : bigint,
+}
 export interface NurseProfile {
   'previousWorkHistory' : [] | [string],
   'status' : NurseStatus,
@@ -125,6 +147,23 @@ export interface PatientSummary {
   'ktpPhotoUrl' : string,
   'verificationStatus' : string,
 }
+export interface Pharmacy {
+  'id' : bigint,
+  'lat' : number,
+  'lon' : number,
+  'closeTime' : string,
+  'name' : string,
+  'address' : string,
+  'phone' : string,
+  'drugs' : Array<DrugStock>,
+  'openTime' : string,
+}
+export interface PlatformSettings {
+  'appName' : string,
+  'maintenanceMode' : boolean,
+  'supportEmail' : string,
+  'supportPhone' : string,
+}
 export interface PricingAuditEntry {
   'id' : bigint,
   'changedAt' : bigint,
@@ -139,7 +178,9 @@ export interface PricingConfig {
 }
 export type Result = { 'ok' : string } |
   { 'err' : string };
-export type Result_1 = { 'ok' : bigint } |
+export type Result_1 = { 'ok' : { 'role' : string } } |
+  { 'err' : string };
+export type Result_2 = { 'ok' : bigint } |
   { 'err' : string };
 export interface Service {
   'id' : bigint,
@@ -156,23 +197,87 @@ export type ServiceCategory = { 'postopcare' : null } |
   { 'elderlycare' : null } |
   { 'woundcare' : null } |
   { 'physiotherapy' : null };
+export interface TransactionEntry {
+  'id' : bigint,
+  'status' : string,
+  'transactionType' : string,
+  'userId' : Principal,
+  'createdAt' : bigint,
+  'description' : string,
+  'amount' : bigint,
+}
+export type TransactionStatus = { 'pending' : null } |
+  { 'completed' : null } |
+  { 'failed' : null };
+export type TransactionType = { 'transfer_out' : null } |
+  { 'deposit' : null } |
+  { 'transfer_in' : null } |
+  { 'withdrawal' : null } |
+  { 'service_income' : null } |
+  { 'service_payment' : null };
+export interface UserListEntry {
+  'status' : string,
+  'name' : string,
+  'role' : string,
+  'email' : string,
+  'registeredAt' : bigint,
+}
+export interface WalletBalance {
+  'userId' : Principal,
+  'lastUpdated' : bigint,
+  'balanceIdr' : bigint,
+}
+export interface WalletTransaction {
+  'id' : bigint,
+  'status' : TransactionStatus,
+  'transactionType' : TransactionType,
+  'userId' : Principal,
+  'createdAt' : bigint,
+  'description' : string,
+  'currency' : string,
+  'amount' : bigint,
+}
+export type WithdrawalMethod = { 'ovo' : null } |
+  { 'bank_mandiri' : null } |
+  { 'dana' : null } |
+  { 'bank_bca' : null } |
+  { 'bank_bni' : null } |
+  { 'bank_bri' : null };
 export interface _SERVICE {
   'acceptBooking' : ActorMethod<[bigint], string>,
+  'activateUser' : ActorMethod<
+    [string],
+    { 'ok' : null } |
+      { 'notFound' : null }
+  >,
+  'adminAddPharmacy' : ActorMethod<
+    [string, string, number, number, string, string, string],
+    Result_2
+  >,
   'adminApprovePatient' : ActorMethod<[Principal], Result>,
   'adminCreateArticle' : ActorMethod<
     [string, string, string, string, string, Array<string>, string],
-    Result_1
+    Result_2
   >,
   'adminCreateService' : ActorMethod<
     [string, string, ServiceCategory, bigint],
     string
   >,
   'adminDeleteService' : ActorMethod<[bigint], string>,
+  'adminGetAllWalletStats' : ActorMethod<
+    [],
+    {
+      'totalVolume' : bigint,
+      'pendingWithdrawals' : bigint,
+      'totalUsers' : bigint,
+    }
+  >,
   'adminRejectPatient' : ActorMethod<[Principal], Result>,
   'adminUpdateArticle' : ActorMethod<
     [bigint, string, string, string, string, Array<string>, string],
     Result
   >,
+  'adminUpdatePharmacyStock' : ActorMethod<[bigint, Array<DrugStock>], Result>,
   'adminUpdatePricing' : ActorMethod<[bigint, bigint, bigint], string>,
   'adminUpdateService' : ActorMethod<[bigint, string, string, bigint], string>,
   'approveNurse' : ActorMethod<[Principal], string>,
@@ -181,9 +286,31 @@ export interface _SERVICE {
     [bigint, string, string, number, number, string],
     string
   >,
+  'deleteUser' : ActorMethod<
+    [string],
+    { 'ok' : null } |
+      { 'notFound' : null } |
+      { 'unauthorized' : null }
+  >,
+  'deposit' : ActorMethod<
+    [bigint, DepositMethod],
+    { 'ok' : WalletBalance } |
+      { 'err' : string }
+  >,
   'estimateCost' : ActorMethod<
     [bigint, number, boolean, boolean],
     [] | [bigint]
+  >,
+  'getActivityLog' : ActorMethod<[bigint, bigint], Array<ActivityEntry>>,
+  'getAdminFinancialReport' : ActorMethod<
+    [],
+    {
+      'pendingWithdrawals' : bigint,
+      'recentTransactions' : Array<TransactionEntry>,
+      'totalWithdrawals' : bigint,
+      'totalRevenue' : bigint,
+      'transactionCount' : bigint,
+    }
   >,
   'getAllBookings' : ActorMethod<[], Array<Booking>>,
   'getAllNurses' : ActorMethod<[], Array<NurseProfile>>,
@@ -191,10 +318,12 @@ export interface _SERVICE {
   'getArticleBySlug' : ActorMethod<[string], [] | [Article]>,
   'getBookingStats' : ActorMethod<[], [] | [BookingStats]>,
   'getIncomingBookings' : ActorMethod<[], Array<Booking>>,
+  'getMyBalance' : ActorMethod<[], WalletBalance>,
   'getMyBookings' : ActorMethod<[], Array<Booking>>,
   'getMyNurseProfile' : ActorMethod<[], [] | [NurseProfile]>,
   'getMyPatientProfile' : ActorMethod<[], [] | [PatientProfile]>,
   'getMyRole' : ActorMethod<[], [] | [string]>,
+  'getMyTransactionHistory' : ActorMethod<[], Array<WalletTransaction>>,
   'getNearbyNurses' : ActorMethod<
     [number, number, number],
     Array<NurseProfile>
@@ -203,14 +332,23 @@ export interface _SERVICE {
   'getNurseSchedule' : ActorMethod<[], Array<Booking>>,
   'getPendingNurses' : ActorMethod<[], Array<NurseProfile>>,
   'getPendingPatients' : ActorMethod<[], Array<PatientSummary>>,
+  'getPharmacies' : ActorMethod<[], Array<Pharmacy>>,
+  'getPharmacyDrugs' : ActorMethod<[bigint], Array<DrugStock>>,
+  'getPharmacyStock' : ActorMethod<[bigint], [] | [Array<DrugStock>]>,
+  'getPlatformSettings' : ActorMethod<[], PlatformSettings>,
   'getPricingAuditLog' : ActorMethod<[], Array<PricingAuditEntry>>,
   'getPricingConfig' : ActorMethod<[], PricingConfig>,
+  'getUserList' : ActorMethod<
+    [[] | [string], [] | [string]],
+    Array<UserListEntry>
+  >,
   'listAllServices' : ActorMethod<[], Array<Service>>,
   'listArticles' : ActorMethod<
     [bigint, bigint],
     { 'total' : bigint, 'items' : Array<Article> }
   >,
   'listServices' : ActorMethod<[], Array<Service>>,
+  'loginWithEmail' : ActorMethod<[string, string], Result_1>,
   'registerAsAdmin' : ActorMethod<[], string>,
   'registerAsNurse' : ActorMethod<
     [
@@ -243,6 +381,11 @@ export interface _SERVICE {
   'registerAsPatient' : ActorMethod<[], string>,
   'rejectBooking' : ActorMethod<[bigint], string>,
   'rejectNurse' : ActorMethod<[Principal], string>,
+  'requestWithdrawal' : ActorMethod<
+    [bigint, WithdrawalMethod, string],
+    { 'ok' : string } |
+      { 'err' : string }
+  >,
   'saveEmailPassword' : ActorMethod<[string, string], Result>,
   'saveNurseProfile' : ActorMethod<
     [
@@ -298,8 +441,21 @@ export interface _SERVICE {
   >,
   'seedArticles' : ActorMethod<[], string>,
   'seedDefaultServices' : ActorMethod<[], string>,
+  'seedPharmacies' : ActorMethod<[], string>,
   'submitVisitReport' : ActorMethod<[bigint, string], string>,
+  'suspendUser' : ActorMethod<
+    [string, string],
+    { 'ok' : null } |
+      { 'notFound' : null } |
+      { 'unauthorized' : null }
+  >,
+  'transferBalance' : ActorMethod<
+    [Principal, bigint],
+    { 'ok' : string } |
+      { 'err' : string }
+  >,
   'updateNurseLocation' : ActorMethod<[number, number], string>,
+  'updatePlatformSettings' : ActorMethod<[PlatformSettings], Result>,
   'verifyEmailPassword' : ActorMethod<[string, string], Result>,
 }
 export declare const idlService: IDL.ServiceClass;

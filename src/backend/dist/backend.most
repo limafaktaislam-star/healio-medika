@@ -1,4 +1,14 @@
-// Version: 3.0.0
+// Version: 1.0.0
+type ActivityEntry__481187024 =
+  {
+    actionType : Text;
+    actorEmail : Text;
+    actorRole : Text;
+    description : Text;
+    id : Nat;
+    metadata : Text;
+    timestamp : Int
+  };
 type Article__693132840 =
   {
     category : Text;
@@ -31,15 +41,23 @@ type Booking__519012722 =
     updatedAt : Int;
     visitReport : ?Text
   };
-type List__415060402<T> = List__790383201<T>;
-type List__790383201<T> =
+type Data__791452850<K, V> =
+  {var count : Nat__490723111; kvs : [var ?(K, V)]};
+type DrugStock__640292545 =
   {
-    var blockIndex : Nat__490723111;
-    var blocks : [var [var ?T]];
-    var elementIndex : Nat__490723111
+    available : Bool;
+    category : Text;
+    drugName : Text;
+    priceIdr : Nat;
+    quantity : Nat
   };
+type Internal__8484328<K, V> =
+  {children : [var ?Node__46230540<K, V>]; data : Data__791452850<K, V>};
+type Leaf__809889148<K, V> = {data : Data__791452850<K, V>};
 type Nat__490723111 = Nat__920180692;
 type Nat__920180692 = Nat;
+type Node__46230540<K, V> =
+  {#internal : Internal__8484328<K, V>; #leaf : Leaf__809889148<K, V>};
 type NurseProfile__165237314 =
   {
     additionalCertificates : ?Text;
@@ -79,118 +97,6 @@ type NurseProfile__165237314 =
     updatedAt : Int
   };
 type NurseStatus__1018191426 = {#pending_verification; #rejected; #verified};
-type OldBookingStatus__846941108 =
-  {#accepted; #cancelled; #completed; #in_progress; #pending; #rejected};
-type OldBooking__221110599 =
-  {
-    createdAt : Int;
-    estimatedFeeIdr : Nat;
-    id : Nat;
-    latitude : Float;
-    longitude : Float;
-    notes : Text;
-    nursePrincipal : ?Principal;
-    patientPrincipal : Principal;
-    scheduledDate : Text;
-    scheduledTime : Text;
-    serviceId : Nat;
-    status : OldBookingStatus__846941108;
-    updatedAt : Int;
-    visitReport : ?Text
-  };
-type OldNurseProfile__100531467 =
-  {
-    additionalCertificates : ?Text;
-    createdAt : Int;
-    currentFacilityType : ?Text;
-    currentWorkDuration : ?Nat;
-    currentWorkplace : ?Text;
-    emergencyCertExpiry : ?Text;
-    emergencyCertification : ?Text;
-    employeeIdCardUrl : ?Text;
-    experienceYears : Nat;
-    graduationYear : ?Nat;
-    ijazahDocumentUrl : ?Text;
-    ktpDocUrl : Text;
-    ktpPhotoUrl : ?Text;
-    latitude : ?Float;
-    locationUpdatedAt : ?Int;
-    longitude : ?Float;
-    medicalCompetencies : ?Text;
-    name : Text;
-    previousFacilityType : ?Text;
-    previousWorkHistory : ?Text;
-    principal : Principal;
-    professionalOrg : ?Text;
-    selfieWithKtpUrl : ?Text;
-    specialization : Text;
-    status : OldNurseStatus__609216299;
-    strDocUrl : Text;
-    strDocumentUrl : ?Text;
-    strExpiry : ?Text;
-    strNumber : Text;
-    totalExperienceYears : ?Nat;
-    university : ?Text;
-    updatedAt : Int
-  };
-type OldNurseStatus__609216299 =
-  {#pending_verification; #rejected; #verified};
-type OldPatientProfile__29314829 =
-  {
-    address : ?Text;
-    age : Nat;
-    allergies : Text;
-    birthDate : ?Text;
-    bloodType : Text;
-    conditions : Text;
-    createdAt : Int;
-    emergencyContactName : ?Text;
-    emergencyContactPhone : ?Text;
-    emergencyContactRelation : ?Text;
-    gender : ?Text;
-    ktpPhotoUrl : ?Text;
-    name : Text;
-    nik : ?Text;
-    phoneNumber : ?Text;
-    principal : Principal;
-    selfieWithKtpUrl : ?Text;
-    updatedAt : Int
-  };
-type OldPricingAuditEntry__535118492 =
-  {
-    adminPrincipal : Principal;
-    changeDescription : Text;
-    changedAt : Int;
-    id : Nat
-  };
-type OldPricingConfig__698068038 =
-  {
-    holidaySurchargePct : Nat;
-    nightSurchargePct : Nat;
-    perKmRateIdr : Nat;
-    updatedAt : Int
-  };
-type OldPricingState__899356834 =
-  {
-    var nextAuditId : Nat;
-    var nextBookingId : Nat;
-    var nextServiceId : Nat;
-    var pricingConfig : OldPricingConfig__698068038
-  };
-type OldServiceCategory__1058276844 =
-  {#ambulance; #elderlycare; #physiotherapy; #postopcare; #woundcare};
-type OldService__50551026 =
-  {
-    baseFeeIdr : Nat;
-    category : OldServiceCategory__1058276844;
-    createdAt : Int;
-    description : Text;
-    id : Nat;
-    isActive : Bool;
-    name : Text;
-    updatedAt : Int
-  };
-type OldUserRole__889293160 = {#admin; #nurse; #patient};
 type PatientProfile__423225276 =
   {
     address : ?Text;
@@ -214,6 +120,18 @@ type PatientProfile__423225276 =
     selfieWithKtpUrl : ?Text;
     updatedAt : Int;
     verificationStatus : Text
+  };
+type Pharmacy__771690694 =
+  {
+    address : Text;
+    closeTime : Text;
+    drugs : [DrugStock__640292545];
+    id : Nat;
+    lat : Float;
+    lon : Float;
+    name : Text;
+    openTime : Text;
+    phone : Text
   };
 type PricingAuditEntry__808252856 =
   {
@@ -242,16 +160,38 @@ type Service__311281967 =
     name : Text;
     updatedAt : Int
   };
+type TransactionStatus__52851611 = {#completed; #failed; #pending};
+type TransactionType__907911643 =
+  {
+    #deposit;
+    #service_income;
+    #service_payment;
+    #transfer_in;
+    #transfer_out;
+    #withdrawal
+  };
 type UserRole__599675725 = {#admin; #nurse; #patient};
-actor ({
-  in auditLog : List__415060402<OldPricingAuditEntry__535118492>;
-  in bookings : List__415060402<OldBooking__221110599>;
-  in nurses : List__415060402<OldNurseProfile__100531467>;
-  in patients : List__415060402<OldPatientProfile__29314829>;
-  in roles : List__415060402<(Principal, OldUserRole__889293160)>;
-  in services : List__415060402<OldService__50551026>;
-  in state : OldPricingState__899356834
-}, {
+type WalletBalance__66131214 =
+  {balanceIdr : Nat; lastUpdated : Int; userId : Principal};
+type WalletTransaction__850303578 =
+  {
+    amount : Nat;
+    createdAt : Int;
+    currency : Text;
+    description : Text;
+    id : Nat;
+    status : TransactionStatus__52851611;
+    transactionType : TransactionType__907911643;
+    userId : Principal
+  };
+actor {
+  stable var accountsSeedDone : Bool;
+  stable activityLog :
+    {
+      var blockIndex : Nat__490723111;
+      var blocks : [var [var ?ActivityEntry__481187024]];
+      var elementIndex : Nat__490723111
+    };
   stable articles :
     {
       var blockIndex : Nat__490723111;
@@ -270,6 +210,13 @@ actor ({
       var blocks : [var [var ?Booking__519012722]];
       var elementIndex : Nat__490723111
     };
+  stable deletedPrincipals :
+    {
+      var blockIndex : Nat__490723111;
+      var blocks : [var [var ?Principal]];
+      var elementIndex : Nat__490723111
+    };
+  stable var nextActivityId : Nat;
   stable nurses :
     {
       var blockIndex : Nat__490723111;
@@ -282,7 +229,20 @@ actor ({
       var blocks : [var [var ?PatientProfile__423225276]];
       var elementIndex : Nat__490723111
     };
-  stable roles :
+  stable pharmacies :
+    {
+      var blockIndex : Nat__490723111;
+      var blocks : [var [var ?Pharmacy__771690694]];
+      var elementIndex : Nat__490723111
+    };
+  stable var platformSettings :
+    {
+      appName : Text;
+      maintenanceMode : Bool;
+      supportEmail : Text;
+      supportPhone : Text
+    };
+  stable var roles :
     {
       var blockIndex : Nat__490723111;
       var blocks : [var [var ?(Principal, UserRole__599675725)]];
@@ -301,6 +261,25 @@ actor ({
       var nextAuditId : Nat;
       var nextBookingId : Nat;
       var nextServiceId : Nat;
+      var pharmacySeedDone : Bool;
       var pricingConfig : PricingConfig__959556763
+    };
+  stable var suspendedPrincipals :
+    {
+      var blockIndex : Nat__490723111;
+      var blocks : [var [var ?(Principal, Text)]];
+      var elementIndex : Nat__490723111
+    };
+  stable wallet_balances :
+    {
+      var root : Node__46230540<Principal, WalletBalance__66131214>;
+      var size : Nat__490723111
+    };
+  stable wallet_state : {var nextTxId : Nat};
+  stable wallet_transactions :
+    {
+      var blockIndex : Nat__490723111;
+      var blocks : [var [var ?WalletTransaction__850303578]];
+      var elementIndex : Nat__490723111
     }
-});
+};

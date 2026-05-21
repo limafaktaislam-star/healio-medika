@@ -100,7 +100,7 @@ const LOGIN_PORTALS = [
     colorBorder: "rgba(201,162,39,0.25)",
     steps: [
       "1. Klik tombol Daftar atau Masuk di atas",
-      "2. Login dengan Internet Identity",
+      "2. Login menggunakan Email & Password",
       "3. Pilih peran sebagai Pasien",
     ],
     note: null,
@@ -121,7 +121,7 @@ const LOGIN_PORTALS = [
     colorBorder: "rgba(45,106,79,0.25)",
     steps: [
       "1. Klik tombol Daftar Tenaga Medis di atas",
-      "2. Login dengan Internet Identity",
+      "2. Login menggunakan Email & Password",
       "3. Pilih peran sebagai Tenaga Medis",
       "4. Lengkapi profil dan dokumen STR/KTP",
     ],
@@ -142,8 +142,8 @@ const LOGIN_PORTALS = [
     colorBg: "rgba(90,106,122,0.06)",
     colorBorder: "rgba(90,106,122,0.2)",
     steps: [
-      "1. Gunakan akun Internet Identity yang terdaftar sebagai Admin",
-      "2. Login di halaman yang sama",
+      "1. Masuk dengan email admin terdaftar",
+      "2. Masukkan email & password di halaman login",
       "3. Sistem otomatis mengarahkan ke Dashboard Admin",
     ],
     note: "Akses Admin hanya untuk pengelola sistem HEALIO MEDIKA",
@@ -609,13 +609,23 @@ export default function LandingPage() {
       <section
         id="layanan"
         className="py-16 md:py-24 relative overflow-hidden"
-        style={{ background: "#ffffff" }}
+        style={{
+          background:
+            "linear-gradient(135deg, #062b1e 0%, #0d4a35 35%, #133d2a 65%, #081f16 100%)",
+        }}
         data-ocid="landing.services_section"
       >
+        {/* Decorative blobs */}
         <div
-          className="absolute top-0 right-1/4 w-96 h-96 rounded-full opacity-[0.04] blur-3xl"
+          className="absolute top-0 left-1/4 w-80 h-80 rounded-full blur-3xl opacity-20"
           style={{
-            background: "radial-gradient(circle, #2d6a4f 0%, transparent 70%)",
+            background: "radial-gradient(circle, #22c55e 0%, transparent 70%)",
+          }}
+        />
+        <div
+          className="absolute bottom-0 right-1/4 w-96 h-96 rounded-full blur-3xl opacity-15"
+          style={{
+            background: "radial-gradient(circle, #c9a227 0%, transparent 70%)",
           }}
         />
         <div className="max-w-7xl mx-auto px-4 relative z-10">
@@ -624,21 +634,22 @@ export default function LandingPage() {
               className="font-display font-extrabold mb-3"
               style={{
                 fontSize: "clamp(2rem, 4vw, 3rem)",
-                color: "#1a3a2a",
+                color: "#ffffff",
+                textShadow: "0 2px 12px rgba(0,0,0,0.4)",
               }}
             >
               LAYANAN UNGGULAN KAMI
             </h2>
             <p
               className="text-lg max-w-2xl mx-auto"
-              style={{ color: "#5a7a68" }}
+              style={{ color: "rgba(255,255,255,0.75)" }}
             >
               Pilih layanan kesehatan profesional yang sesuai dengan kebutuhan
               Anda
             </p>
             <div
               className="w-20 h-1 mx-auto mt-4 rounded-full"
-              style={{ background: "linear-gradient(90deg, #2d6a4f, #c9a227)" }}
+              style={{ background: "linear-gradient(90deg, #4ade80, #c9a227)" }}
             />
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -652,18 +663,38 @@ export default function LandingPage() {
               return (
                 <div
                   key={svc.category}
-                  className="group rounded-2xl p-6 transition-smooth hover:translate-y-[-4px] bg-white"
+                  className="group rounded-[20px] p-6 cursor-pointer"
                   style={{
-                    border: "1.5px solid rgba(45,106,79,0.12)",
-                    boxShadow: "0 4px 20px rgba(45,106,79,0.07)",
+                    background: "rgba(255,255,255,0.12)",
+                    backdropFilter: "blur(20px)",
+                    WebkitBackdropFilter: "blur(20px)",
+                    border: "1px solid rgba(255,255,255,0.3)",
+                    boxShadow:
+                      "0 8px 32px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.4)",
+                    transition: "all 0.3s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    const el = e.currentTarget;
+                    el.style.transform = "scale(1.05) translateY(-4px)";
+                    el.style.background = "rgba(255,255,255,0.18)";
+                    el.style.boxShadow =
+                      "0 20px 48px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.5)";
+                  }}
+                  onMouseLeave={(e) => {
+                    const el = e.currentTarget;
+                    el.style.transform = "scale(1) translateY(0)";
+                    el.style.background = "rgba(255,255,255,0.12)";
+                    el.style.boxShadow =
+                      "0 8px 32px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.4)";
                   }}
                   data-ocid={`landing.service_card.${idx + 1}`}
                 >
                   <div
                     className="w-14 h-14 rounded-xl flex items-center justify-center text-3xl mb-4"
                     style={{
-                      background: "rgba(45,106,79,0.08)",
-                      border: "1px solid rgba(45,106,79,0.15)",
+                      background: "rgba(255,255,255,0.15)",
+                      border: "1px solid rgba(255,255,255,0.35)",
+                      boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
                     }}
                   >
                     {FRONTEND_CATEGORY_ICONS[svc.category]}
@@ -671,7 +702,11 @@ export default function LandingPage() {
                   <div className="flex items-center gap-2 mb-2">
                     <h3
                       className="font-display font-extrabold uppercase tracking-wide"
-                      style={{ color: "#1a3a2a", fontSize: "1.1rem" }}
+                      style={{
+                        color: "#ffffff",
+                        fontSize: "1.1rem",
+                        textShadow: "0 1px 6px rgba(0,0,0,0.2)",
+                      }}
                     >
                       {FRONTEND_CATEGORY_LABELS[svc.category]}
                     </h3>
@@ -679,8 +714,9 @@ export default function LandingPage() {
                       <span
                         className="text-xs px-2 py-0.5 rounded-full font-semibold"
                         style={{
-                          background: "rgba(201,162,39,0.12)",
-                          color: "#7a6218",
+                          background: "rgba(201,162,39,0.35)",
+                          color: "#f5d76a",
+                          border: "1px solid rgba(201,162,39,0.4)",
                         }}
                       >
                         Konsultasi
@@ -690,8 +726,9 @@ export default function LandingPage() {
                       <span
                         className="text-xs px-2 py-0.5 rounded-full font-semibold flex items-center gap-1"
                         style={{
-                          background: "rgba(45,106,79,0.1)",
-                          color: "#1a5c38",
+                          background: "rgba(74,222,128,0.2)",
+                          color: "#86efac",
+                          border: "1px solid rgba(74,222,128,0.35)",
                         }}
                       >
                         <MapPin size={10} /> GPS
@@ -700,20 +737,33 @@ export default function LandingPage() {
                   </div>
                   <p
                     className="text-base leading-relaxed mb-5"
-                    style={{ color: "#5a7a68" }}
+                    style={{ color: "rgba(255,255,255,0.78)" }}
                   >
                     {FRONTEND_CATEGORY_DESCS[svc.category]}
                   </p>
                   <button
                     type="button"
                     onClick={() =>
-                      navigate({
-                        to: "/services/$category",
-                        params: { category: svc.category },
-                      })
+                      svc.category === "apotek"
+                        ? navigate({ to: "/apotek" })
+                        : navigate({
+                            to: "/services/$category",
+                            params: { category: svc.category },
+                          })
                     }
-                    className="flex items-center gap-2 text-sm font-bold transition-smooth"
-                    style={{ color: "#2d6a4f" }}
+                    className="flex items-center gap-2 text-sm font-bold"
+                    style={{
+                      color: "#86efac",
+                      transition: "color 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.color =
+                        "#f5d76a";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.color =
+                        "#86efac";
+                    }}
                     data-ocid={`landing.service_order_button.${idx + 1}`}
                   >
                     {isConsultOnly ? "Konsultasi Sekarang" : "Cari Terdekat"}

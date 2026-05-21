@@ -24,6 +24,7 @@ import {
   User,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 // Sub-service definitions per category
 const SUB_SERVICES: Record<
@@ -565,7 +566,18 @@ export default function ServiceCategoryPage() {
                         fee={doc.fee}
                         distance={null}
                         nightTime={nightTime}
-                        onBook={() => navigate({ to: "/login" })}
+                        onBook={() => {
+                          const isLoggedIn =
+                            localStorage.getItem("healio_role");
+                          if (!isLoggedIn) {
+                            toast.error(
+                              "Silahkan login terlebih dahulu untuk memesan layanan",
+                            );
+                            navigate({ to: "/login" });
+                            return;
+                          }
+                          navigate({ to: "/patient/services" });
+                        }}
                       />
                     ))}
                   </div>
@@ -759,7 +771,18 @@ export default function ServiceCategoryPage() {
                               fee={null}
                               distance={distKm}
                               nightTime={nightTime}
-                              onBook={() => navigate({ to: "/login" })}
+                              onBook={() => {
+                                const isLoggedIn =
+                                  localStorage.getItem("healio_role");
+                                if (!isLoggedIn) {
+                                  toast.error(
+                                    "Silahkan login terlebih dahulu untuk memesan layanan",
+                                  );
+                                  navigate({ to: "/login" });
+                                  return;
+                                }
+                                navigate({ to: "/patient/services" });
+                              }}
                             />
                           );
                         })}
